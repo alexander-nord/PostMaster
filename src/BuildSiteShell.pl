@@ -27,11 +27,15 @@ if (@ARGV != 2) {
 
 my $all_sites_dir_name = LocateScript();
 if ($all_sites_dir_name eq 'BuildSiteShell.pl') {
-	$all_sites_dir_name = ConfirmDirectory('../sites/');
+	$all_sites_dir_name = '../sites/';
 } else {
 	$all_sites_dir_name =~ s/src\/BuildSiteShell.pl$/sites\//;
-	$all_sites_dir_name = ConfirmDirectory($all_sites_dir_name);
 }
+
+if (!(-d $all_sites_dir_name)) {
+	CreateDirectory($all_sites_dir_name);
+}
+$all_sites_dir_name = ConfirmDirectory($all_sites_dir_name);
 
 
 my $info_file_name = ConfirmFile($ARGV[0]);
