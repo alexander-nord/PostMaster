@@ -58,7 +58,7 @@ sub ApplyHTMLTemplateToMarkdownFile
 
 
 	my $site_data_dir_name = $site_dir_name;
-	$site_data_dir_name =~ s/\/$/\-PostMaster\-Data\//;
+	$site_data_dir_name =~ s/\/([^\/]+)\/$/\/\.$1\-PostMaster\-Data\//;
 
 	if (!(-d $site_data_dir_name)) {
 		print "\n  ERROR:  Site located at '$site_dir_name' does not appear to be a PostMaster site (failed to locate '$site_data_dir_name')\n\n";

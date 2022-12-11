@@ -25,7 +25,7 @@ if ($postmaster_dir_name eq './') {
 
 my $site_dir_name = ConfirmDirectory($postmaster_dir_name.'sites/'.$ARGV[0]);
 my $site_data_dir_name = $site_dir_name;
-$site_data_dir_name =~ s/\/$/-PostMaster-Data\//;
+$site_data_dir_name =~ s/\/([^\/]+)\/$/\/\.$1\-PostMaster\-Data\//;
 ConfirmDirectory($site_data_dir_name);
 
 
