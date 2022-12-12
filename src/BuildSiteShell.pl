@@ -118,7 +118,11 @@ print $MetaDataFile "FONTS:style/default.fontlinks.html\n";
 print $MetaDataFile "AUTOGRAPH:files/imgs/default.jpg\n";
 
 
+# Let's do a giant push!
+if ($github_username) {
+	PlanGitOperation($new_site_dir_name.'*','add');
+	PushSite($site_name);
+}
 
 
-
-1;
+1; # EOF

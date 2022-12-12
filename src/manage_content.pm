@@ -64,11 +64,17 @@ sub PushSite
 	my $git_cmd_queue_name = '../.'.$site_name.'-PostMaster-Data/git-queue';
 	if (-e $git_cmd_queue_name) {
 
+		# In particular, it seems possible that we could have multiple
+		# requests to update 'recent-posts' files, so we can just skip
+		# that redundancy.
+		my %AlreadyRun;
+
 		my $GitCmdQueue = OpenInputFile($git_cmd_queue_name);
 		while (my $cmd_line = <$GitCmdQueue>) {
 			$cmd_line =~ s/\n|\r//g;
-			next if (!$cmd_line);
+			next if (!$cmd_line || $AlreadyRun{$cmd_line});
 			RunSystemCommand($cmd_line);
+			$AlreadyRun{$cmd_line} = 1;
 		}
 		close($GitCmdQueue);
 

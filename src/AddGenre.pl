@@ -61,15 +61,18 @@ if (!$genre_index_html) {
 	die "\n  ERROR:  Failed to parse genre description file '$markdown_file_name' into html template\n\n";
 }
 
-my $GenreIndex = OpenOutputFile($genre_dir_name.'index.html');
+my $genre_index_filename = $genre_dir_name.'index.html';
+my $GenreIndex = OpenOutputFile($genre_index_filename);
 print $GenreIndex "$genre_index_html";
 close($GenreIndex);
 
-
-my $GenreListFile = AppendToOutputFile($site_dir_name.'blog-genres');
+my $genre_list_filename = $site_dir_name.'blog-genres';
+my $GenreListFile = AppendToOutputFile($genre_list_filename);
 print $GenreListFile "$new_genre\n";
 close($GenreListFile);
 
+PlanGitOperation($genre_index_filename,'add');
+PlanGitOperation($genre_list_filename,'add');
 
 1;
 

@@ -8,6 +8,7 @@ use POSIX;
 sub locate_int_new_con { return './' if ($0 !~ /\//); $0 =~ /^(.*\/)[^\/]+$/; return $1; }
 use lib locate_int_new_con();
 use bureaucracy; # This is ONLY used for getting dates -- all I/O errors should be highly specific!
+use manage_content;
 use markdown_to_html;
 
 
@@ -304,6 +305,8 @@ sub CopyLocalFilesToSite
 
 			$line =~ s/\"$original_filename\"/\"$target_filename\"/;	
 
+			PlanGitOperation($target_filename,'add');
+
 		} elsif ($line =~ /\<a href\=\"([^\"]+)\"/) {
 
 			my $original_link = $1;
@@ -319,6 +322,8 @@ sub CopyLocalFilesToSite
 				}
 
 				$line =~ s/\"$original_link\"/\"$target_filename\"/;
+
+				PlanGitOperation($target_filename,'add');
 
 			}
 

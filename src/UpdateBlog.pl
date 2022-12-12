@@ -55,8 +55,7 @@ close($HTMLOut);
 
 
 RunSystemCommand("mv \"$tmp_html_filename\" \"$html_filename\"");
-
-
+PlanGitOperation($html_filename,'add');
 
 1;
 

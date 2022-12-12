@@ -129,6 +129,8 @@ if (FileExists($static_posts_fname)) {
 close($TmpFile);
 RunSystemCommand("mv \"$tmp_fname\" \"$static_posts_fname\"");
 
+PlanGitOperation($static_posts_fname,'add');
+
 
 1;
 

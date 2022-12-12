@@ -84,13 +84,13 @@ my $HTMLOutFile = OpenOutputFile($output_html_name);
 print $HTMLOutFile "$output_html_str";
 close($HTMLOutFile);
 
-
-# That's it for 
+# Figure out what image (if any) will serve as the representative image for the post
 my $post_img = '-';
 if ($output_html_str =~ /\<img[^\>]+src\=\"([^\"]+)\"/) {
 	$post_img = $1;
 }
 
+PlanGitOperation($output_html_name,'add');
 
 # Add the file to our list of ALL recent posts
 UpdateRecentPostsFile($site_dir_name,"\"$title\" $output_html_name $formatted_date $post_img");
@@ -134,5 +134,14 @@ sub UpdateRecentPostsFile
 
 	RunSystemCommand("mv \"$tmp_recents_fname\" \"$recent_posts_fname\"");
 
+	PlanGitOperation($recent_posts_fname,'add');
+
 }
+
+
+
+
+
+
+# EOF
 

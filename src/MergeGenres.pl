@@ -48,6 +48,14 @@ my $new_genre_name = $ARGV[3];
 my $formatted_new_genre_name = lc($new_genre_name);
 $formatted_new_genre_name =~ s/\s/\_/g;
 
+# If the new genre name matches one of the previous genres, take note!
+my $new_matches_1 = 0;
+$new_matches_1 = 1 if ($formatted_genre1_name eq $formatted_new_genre_name);
+
+my $new_matches_2 = 0;
+$new_matches_2 = 1 if ($formatted_genre2_name eq $formatted_new_genre_name);
+
+
 my $tmp_dir_name = CreateDirectory($site_dir_name.'tmp');
 my $tmp_genre1_dir_name = $tmp_dir_name.$formatted_genre1_name;
 my $tmp_genre2_dir_name = $tmp_dir_name.$formatted_genre2_name;
@@ -83,6 +91,7 @@ my $tmp_recents_filename = $recents_filename.'.tmp';
 my $InRecentsFile = OpenInputFile($recents_filename);
 my $TmpRecentsFile = OpenOutputFile($tmp_recents_filename);
 my $GenreRecentsFile = OpenOutputFile($new_dir_name.'recent-posts');
+my @PlannedGitActions;
 while (my $line = <$InRecentsFile>) {
 
 	$line =~ s/\n|\r//g;
@@ -97,6 +106,11 @@ while (my $line = <$InRecentsFile>) {
 		$line =~ s/\/$formatted_genre1_name\//\/$formatted_new_genre_name\//;
 		print $GenreRecentsFile "$line\n";
 
+		if (!$new_matches_1) {
+			push(@PlannedGitActions,$genre1_dir_name.$html_fname.'|rm');
+			push(@PlannedGitActions,$new_dir_name.$html_fname.'|add');
+		}
+
 	} elsif ($line =~ /\/$formatted_genre2_name\/(\S+)/) {
 
 		my $html_fname = $1;
@@ -105,6 +119,11 @@ while (my $line = <$InRecentsFile>) {
 
 		$line =~ s/\/$formatted_genre2_name\//\/$formatted_new_genre_name\//;
 		print $GenreRecentsFile "$line\n";
+
+		if (!$new_matches_2) {
+			push(@PlannedGitActions,$genre2_dir_name.$html_fname.'|rm');
+			push(@PlannedGitActions,$new_dir_name.$html_fname.'|add');
+		}
 
 	}
 
@@ -119,6 +138,15 @@ close($GenreRecentsFile);
 RunSystemCommand("mv $tmp_recents_filename $recents_filename");
 RunSystemCommand("rm -rf $tmp_dir_name");
 
+foreach my $planned_action (@PlannedGitActions) {
+	$planned_action =~ /^([^\|]+)\|([^\|]+)$/;
+	PlanGitAction($1,$2);
+}
+PlanGitAction($genre1_dir_name,'rm') if (!$new_matches_1);
+PlanGitAction($genre2_dir_name,'rm') if (!$new_matches_2);
+
+PlanGitAction($new_dir_name.'recent-posts','add');
+PlanGitAction($recents_filename,'add');
 
 1;
 

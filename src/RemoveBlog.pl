@@ -47,6 +47,11 @@ RunSystemCommand("mv \"$tmp_genre_list_filename\" \"$genre_list_filename\"");
 
 RunSystemCommand("rm \"$target_filename\"");
 
+PlanGitAction($target_filename,'rm');
+PlanGitAction($site_list_filename,'add');
+PlanGitAction($genre_list_filename,'add');
+
+
 1;
 
 
