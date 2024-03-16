@@ -330,7 +330,7 @@ sub ConvertFileToHTML
 
 		if ($md_line =~ /\S/) {
 
-			$is_block_quote    = 0 if ($md_line !~ /^\s*> |^\s*>$/);
+			$is_block_quote    = 0 if ($md_line !~ /^\s*>/);
 			$is_ordered_list   = 0 if ($md_line !~ /^\s*\d+\.? /);
 			$is_unordered_list = 0 if ($md_line !~ /^\s*\- |^\s*\+ /);
 
@@ -342,9 +342,13 @@ sub ConvertFileToHTML
 			$next_paragraph =   OrderedListCatch($next_paragraph) if ($is_ordered_list);
 			$next_paragraph = UnorderedListCatch($next_paragraph) if ($is_unordered_list);
 
-			push(@Paragraphs,TranslateStringToHTML($next_paragraph));
-
-			$next_paragraph = '';
+			my $translation = TranslateStringToHTML($next_paragraph);
+			if ($translation !~ /^\<h|^\<blockquote|^\<ol|^\<ul/) {
+				$translation = '<p>'.$translation.'</p>';
+			}
+			push(@Paragraphs,$translation);
+	
+			$next_paragraph    = '';
 			$is_block_quote    = 1;
 			$is_ordered_list   = 1;
 			$is_unordered_list = 1;
@@ -353,7 +357,17 @@ sub ConvertFileToHTML
 
 	}
 	if ($next_paragraph =~ /\S/) {
-		push(@Paragraphs,TranslateStringToHTML($next_paragraph));
+	
+		$next_paragraph =    BlockQuoteCatch($next_paragraph) if ($is_block_quote);
+		$next_paragraph =   OrderedListCatch($next_paragraph) if ($is_ordered_list);
+		$next_paragraph = UnorderedListCatch($next_paragraph) if ($is_unordered_list);
+	
+		my $translation = TranslateStringToHTML($next_paragraph);
+		if ($translation !~ /^\<h|^\<blockquote|^\<ol|^\<ul/) {
+			$translation = '<p>'.$translation.'</p>';
+		}
+		push(@Paragraphs,$translation);
+	
 	}
 	
 	close($InFile);
@@ -361,14 +375,7 @@ sub ConvertFileToHTML
 
 	my $html_str = '';
 	foreach my $paragraph (@Paragraphs) {
-
-		if ($paragraph =~ /\<h/) {
-			$html_str = $html_str.$paragraph;
-		} else {
-			$html_str = $html_str.'<p>'.$paragraph.'</p>';
-		}
-		$html_str = $html_str."\n<br>\n";
-
+		$html_str = $html_str.$paragraph."\n<br>\n";
 	}
 
 
