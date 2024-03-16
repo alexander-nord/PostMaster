@@ -5,6 +5,13 @@ use POSIX;
 use Cwd;
 
 
+sub PageDirBuildFail;
+sub FixImageLinks;
+sub CopyFilesToPageDir;
+sub CreatePageDir;
+
+
+
 if (@ARGV != 2) {
 	die "\n  USAGE:  ./BuildPageDirFromMarkdown.pl [path/to/dir] [file.md]\n\n";
 }
@@ -64,6 +71,10 @@ sub PageDirBuildFail
 
 
 
+###################################################################
+#
+#  Function:  FixImageLinks
+#
 sub FixImageLinks
 {
 	my $html_str     = shift;
@@ -105,6 +116,10 @@ sub FixImageLinks
 
 
 
+###################################################################
+#
+#  Function:  CopyFilesToPageDir
+#
 sub CopyFilesToPageDir
 {
 	my $out_dir_name = shift;

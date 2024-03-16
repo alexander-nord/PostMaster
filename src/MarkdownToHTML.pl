@@ -1,11 +1,20 @@
 #!/usr/bin/env perl
 use warnings;
 use strict;
+use POSIX;
 
 
+sub CodeBlockCatch;
+sub BlockQuoteCatch;
+sub OrderedListCatch;
+sub UnorderedListCatch;
+sub LinkCatch;
+sub ImageCatch;
 sub PerformQuickConversions;
+sub TagScan;
 sub TranslateStringToHTML;
 sub ConvertFileToHTML;
+
 
 
 if (scalar(@ARGV) != 1) {
