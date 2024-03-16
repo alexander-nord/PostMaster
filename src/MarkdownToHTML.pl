@@ -113,6 +113,40 @@ sub UnorderedListCatch
 
 ############################################################
 #
+#  Function:  LinkCatch
+#
+sub LinkCatch
+{
+	my $str = shift;
+	$str =~ s/\[([^\]]+)\]\(([^\)]+)\)/<a href="$2">$1<\/a>/g;
+	return $str;
+}
+
+
+
+
+
+
+
+############################################################
+#
+#  Function:  ImageCatch
+#
+sub ImageCatch
+{
+	my $str = shift;
+	$str =~ s/\!\[([^\]]+)\]\(([^\)]+)\)/<img src="$2" alt="$1">/g;
+	return $str;
+}
+
+
+
+
+
+
+
+############################################################
+#
 #  Function:  PerformQuickConversions
 #
 sub PerformQuickConversions
@@ -138,6 +172,9 @@ sub PerformQuickConversions
 
 	$str =~ s/ < / &lt; /g;
 	$str =~ s/ > / &gt; /g;
+
+	$str = ImageCatch($str); # This should be first  -- looking for ![text](img)
+	$str = LinkCatch($str);  # This should be second -- looking for  [text](url)
 
 	return $str;
 
@@ -338,3 +375,4 @@ sub ConvertFileToHTML
 	return $html_str;
 
 }
+
