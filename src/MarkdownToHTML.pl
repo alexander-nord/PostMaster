@@ -34,6 +34,32 @@ print "$html_str\n";
 
 ############################################################
 #
+#  Function:  CodeBlockCatch
+#
+sub CodeBlockCatch
+{
+	my $str = shift;
+
+	my @Lines = split(/\n/,$str);
+	$str = "<code>";
+	
+	foreach my $line (@Lines) {
+		$line =~ s/^\s*\`\s*//;
+		$str = $str."\n".$line if ($line =~ /\S/);
+	}
+	
+	return $str."\n</code>\n";
+
+}
+
+
+
+
+
+
+
+############################################################
+#
 #  Function:  BlockQuoteCatch
 #
 sub BlockQuoteCatch
@@ -281,10 +307,6 @@ sub TranslateStringToHTML
 	$html_str = TagScan($html_str,'*','<em>','&lowast;');
 	$html_str = TagScan($html_str,'_','<em>',0);
 
-	$html_str = TagScan($html_str,'```','<code>','&#96;&#96;&#96;');
-	$html_str = TagScan($html_str,'``','<code>','&#96;&#96;');
-	$html_str = TagScan($html_str,'`','<code>','&#96;');
-
 	$html_str =~ s/\s+/ /g;
 	$html_str =~ s/^\s+//;
 	$html_str =~ s/\s+$//;
@@ -320,6 +342,7 @@ sub ConvertFileToHTML
 	my @Paragraphs;
 
 	my $next_paragraph    = '';
+	my $is_code_block     = 1;
 	my $is_block_quote    = 1;
 	my $is_ordered_list   = 1;
 	my $is_unordered_list = 1;
@@ -330,7 +353,8 @@ sub ConvertFileToHTML
 
 		if ($md_line =~ /\S/) {
 
-			$is_block_quote    = 0 if ($md_line !~ /^\s*>/);
+			$is_code_block     = 0 if ($md_line !~ /^\s*\`/);
+			$is_block_quote    = 0 if ($md_line !~ /^\s*\>/);
 			$is_ordered_list   = 0 if ($md_line !~ /^\s*\d+\.? /);
 			$is_unordered_list = 0 if ($md_line !~ /^\s*\- |^\s*\+ /);
 
@@ -338,17 +362,19 @@ sub ConvertFileToHTML
 
 		} elsif ($next_paragraph =~ /\S/) {
 
+			$next_paragraph =     CodeBlockCatch($next_paragraph) if ($is_code_block);
 			$next_paragraph =    BlockQuoteCatch($next_paragraph) if ($is_block_quote);
 			$next_paragraph =   OrderedListCatch($next_paragraph) if ($is_ordered_list);
 			$next_paragraph = UnorderedListCatch($next_paragraph) if ($is_unordered_list);
 
 			my $translation = TranslateStringToHTML($next_paragraph);
-			if ($translation !~ /^\<h|^\<blockquote|^\<ol|^\<ul/) {
+			if ($translation !~ /^\<h|^\<code|^\<blockquote|^\<ol|^\<ul/) {
 				$translation = '<p>'.$translation.'</p>';
 			}
 			push(@Paragraphs,$translation);
 	
 			$next_paragraph    = '';
+			$is_code_block     = 1;
 			$is_block_quote    = 1;
 			$is_ordered_list   = 1;
 			$is_unordered_list = 1;
@@ -358,12 +384,13 @@ sub ConvertFileToHTML
 	}
 	if ($next_paragraph =~ /\S/) {
 	
+		$next_paragraph =     CodeBlockCatch($next_paragraph) if ($is_code_block);
 		$next_paragraph =    BlockQuoteCatch($next_paragraph) if ($is_block_quote);
 		$next_paragraph =   OrderedListCatch($next_paragraph) if ($is_ordered_list);
 		$next_paragraph = UnorderedListCatch($next_paragraph) if ($is_unordered_list);
 	
 		my $translation = TranslateStringToHTML($next_paragraph);
-		if ($translation !~ /^\<h|^\<blockquote|^\<ol|^\<ul/) {
+		if ($translation !~ /^\<h|^\<code|^\<blockquote|^\<ol|^\<ul/) {
 			$translation = '<p>'.$translation.'</p>';
 		}
 		push(@Paragraphs,$translation);
