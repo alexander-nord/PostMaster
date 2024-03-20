@@ -5,18 +5,6 @@ use POSIX;
 use Cwd;
 
 
-sub PageDirBuildFail;
-sub FixImageLinks;
-sub CopyFilesToPageDir;
-sub CreatePageDir;
-
-
-
-if (@ARGV != 2) {
-	die "\n  USAGE:  ./BuildPageDirFromMarkdown.pl [path/to/dir] [file.md]\n\n";
-}
-
-
 my $WORKING_DIR = getcwd();
 $WORKING_DIR = $WORKING_DIR.'/' if ($WORKING_DIR !~ /\/$/);
 
@@ -26,15 +14,27 @@ $SCRIPT_DIR = '.' if (!$SCRIPT_DIR);
 $SCRIPT_DIR = $SCRIPT_DIR.'/';
 
 
+sub PageDirBuildFail;
+sub FixImageLinks;
+sub CopyFilesToPageDir;
+sub CreatePageDir;
+
+
+
+if (@ARGV != 2) {
+	die "\n  USAGE:  ./BuildBlogDirFromMarkdown.pl [intended/path/to/dir] [file.md]\n\n";
+}
+
+
 
 if (-d $ARGV[0]) {
-	die "\n  ERROR:  Directory '$ARGV[0]' already exists -- update, don't build! (BuildPageDirFromMarkdown)\n\n";
+	die "\n  ERROR:  Directory '$ARGV[0]' already exists -- update, don't build! (BuildBlogDirFromMarkdown)\n\n";
 }
 
 
 my $md_file_name = $ARGV[1];
 if (!(-e $md_file_name)) {
-	die "\n  ERROR:  Failed to locate markdown file '$md_file_name' (BuildPageDirFromMarkdown.pl)\n\n";
+	die "\n  ERROR:  Failed to locate markdown file '$md_file_name' (BuildBlogDirFromMarkdown.pl)\n\n";
 }
 
 
@@ -63,7 +63,7 @@ sub PageDirBuildFail
 	foreach my $dir_name (@{$created_dirs_ref}) { 
 		system("rm -rf $dir_name"); 
 	}
-	die "\n  ERROR: $err_msg (BuildPageDirFromMarkdown.pl)\n\n";
+	die "\n  ERROR: $err_msg (BuildBlogDirFromMarkdown.pl)\n\n";
 }
 
 
@@ -84,7 +84,7 @@ sub FixImageLinks
 	my @Images;
 	while ($html_str =~ /<img src="(\S+)"/) {
 		push(@Images,$1);
-		$html_str =~ s/<img src="\S+"/<img src=""/;
+		$html_str =~ s/<img src="\S+"/<img src="" class="blogPic"/;
 	}
 
 
@@ -141,7 +141,7 @@ sub CopyFilesToPageDir
 	open(my $HTMLScanner,$md_to_html_cmd) 
 		|| PageDirBuildFail("Failed to run markdown parsing command '$md_to_html_cmd'");
 
-	my $out_html_file_name = $out_dir_name.'body.html';
+	my $out_html_file_name = $out_dir_name.'.blog.html';
 	open(my $OutHTML,'>',$out_html_file_name)
 		|| PageDirBuildFail("Failed to open output html file '$out_html_file_name'");
 
@@ -155,7 +155,8 @@ sub CopyFilesToPageDir
 	close($HTMLScanner);
 
 
-	my $md_copy_cmd = "cp \"$md_file_name\" \"$out_dir_name\"";
+	my $out_md_file_name = $out_dir_name.'.blog.md';
+	my $md_copy_cmd = "cp \"$md_file_name\" \"$out_md_file_name\"";
 	if (system($md_copy_cmd)) {
 		PageDirBuildFail("Failed to copy markdown file to output directory (command:'$md_copy_cmd')");
 	}
