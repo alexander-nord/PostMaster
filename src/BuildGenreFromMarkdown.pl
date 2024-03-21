@@ -163,6 +163,37 @@ sub GenreDirSetupFail
 
 ###################################################################
 #
+#  Function:  PullPlainName
+#
+sub PullPlainName
+{
+	my $markdown_file_name = shift;
+	
+	open(my $MarkdownFile,'<',$markdown_file_name)
+		|| die "\n  ERROR:  Failed to open markdown file '$markdown_file_name' (BuildGenreDirFromMarkdown.pl)\n\n";
+	
+	my $name;
+	while (my $line = <$MarkdownFile>) {
+		$line =~ s/\n|\r//g;
+		if ($line =~ /^\s*#\s*(.+)\s*$/) {
+			$name = $1;
+			last;
+		}
+	}
+	
+	close($MarkdownFile);
+
+	return $name;
+
+}
+
+
+
+
+
+
+###################################################################
+#
 #  Function:  SetupGenreDir
 #
 sub SetupGenreDir 
@@ -175,12 +206,13 @@ sub SetupGenreDir
 	my ($genre_name_html,$genre_desc_html) = GenreMarkdownToHTML($markdown_file_name);
 
 
-	my $genre_name_text = $genre_name_html;
-	$genre_name_text =~ s/<[^>]+>/ /g;
+	my $genre_name_text = PullPlainName($markdown_file_name);
+
 	$genre_name_text =~ s/\s/_/g;
 	while ($genre_name_text =~ /__/) {
 		$genre_name_text =~ s/__/_/g;
 	}
+	$genre_name_text =~ s/\W//g;
 
 
 	my $genre_dir_name = $site_dir_name.$genre_name_text.'/';
@@ -209,6 +241,8 @@ sub SetupGenreDir
 	print $GenreListFile "\"$genre_name_html\" $genre_name_text\n";
 	close($GenreListFile);
 
+
+	return $genre_dir_name;
 
 }
 

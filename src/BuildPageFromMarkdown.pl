@@ -23,19 +23,19 @@ sub ComposePageHTML;
 
 
 if (@ARGV != 2) {
-	die "\n  USAGE:  ./BuildBlogDirFromMarkdown.pl [path/to/intended/page/dir] [file.md]\n\n";
+	die "\n  USAGE:  ./BuildPageFromMarkdown.pl [path/to/intended/page/dir] [file.md]\n\n";
 }
 
 
 
 if (-d $ARGV[0]) {
-	die "\n  ERROR:  Directory '$ARGV[0]' already exists -- update, don't build! (BuildBlogDirFromMarkdown)\n\n";
+	die "\n  ERROR:  Directory '$ARGV[0]' already exists -- update, don't build! (BuildPageFromMarkdown)\n\n";
 }
 
 
 my $md_file_name = $ARGV[1];
 if (!(-e $md_file_name)) {
-	die "\n  ERROR:  Failed to locate markdown file '$md_file_name' (BuildBlogDirFromMarkdown.pl)\n\n";
+	die "\n  ERROR:  Failed to locate markdown file '$md_file_name' (BuildPageFromMarkdown.pl)\n\n";
 }
 
 
@@ -69,7 +69,7 @@ sub PageDirBuildFail
 	foreach my $dir_name (@{$created_dirs_ref}) { 
 		system("rm -rf $dir_name"); 
 	}
-	die "\n  ERROR: $err_msg (BuildBlogDirFromMarkdown.pl)\n\n";
+	die "\n  ERROR: $err_msg (BuildPageFromMarkdown.pl)\n\n";
 }
 
 
@@ -260,8 +260,7 @@ sub RecordPageCreation
 		|| die "\n  ERROR:  Failed to open page file '$page_file_name'\n\n";
 	my $page_title;
 	while (my $line = <$Page>) {
-		print ">$line";
-		if ($line =~ /<h2>\s*(.+)\s*<\/h2>/) {
+		if ($line =~ /^<h2>\s*(.+)\s*<\/h2>/) {
 			$page_title = $1;
 			last;
 		}
