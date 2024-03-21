@@ -23,7 +23,7 @@ sub ComposePageHTML;
 
 
 if (@ARGV != 2) {
-	die "\n  USAGE:  ./BuildBlogDirFromMarkdown.pl [intended/path/to/dir] [file.md]\n\n";
+	die "\n  USAGE:  ./BuildBlogDirFromMarkdown.pl [path/to/intended/page/dir] [file.md]\n\n";
 }
 
 
@@ -230,9 +230,9 @@ sub RecordPageCreation
 	my $page_file_name = shift;
 
 	
-	$page_file_name =~ /^(.+\/)([^\?]+)$/;
+	$page_file_name =~ /^(.+\/)([^\/]+\/[^\/]+)$/;
 	my $genre_dir_name = $1;
-	my $page_file_base_name = $2;
+	my $page_dir_file_names = $2;
 
 
 	$genre_dir_name =~ /^(.+\/)([^\/]+)\/$/;
@@ -253,14 +253,15 @@ sub RecordPageCreation
 	close($SiteMetadata);
 	
 
-	my $page_url = $site_url.'/'.$genre_dir_base_name.'/'.$page_file_base_name;
+	my $page_url = $site_url.'/'.$genre_dir_base_name.'/'.$page_dir_file_names;
 
 
 	open(my $Page,'<',$page_file_name)
 		|| die "\n  ERROR:  Failed to open page file '$page_file_name'\n\n";
 	my $page_title;
 	while (my $line = <$Page>) {
-		if ($line =~ /<h1>\s*(.+)\s*<\/h1>/) {
+		print ">$line";
+		if ($line =~ /<h2>\s*(.+)\s*<\/h2>/) {
 			$page_title = $1;
 			last;
 		}
