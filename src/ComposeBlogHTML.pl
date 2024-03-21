@@ -2,6 +2,7 @@
 use warnings;
 use strict;
 use POSIX;
+use Cwd;
 
 
 my $WORKING_DIR = getcwd();
@@ -11,6 +12,14 @@ my $SCRIPT_DIR = $0;
 $SCRIPT_DIR =~ s/\/?[^\/]+$//;
 $SCRIPT_DIR = '.' if (!$SCRIPT_DIR);
 $SCRIPT_DIR = $SCRIPT_DIR.'/';
+
+
+sub RipTextFromFile;
+sub ComposeBlog;
+sub GatherKeywords;
+sub GrabTitleFromHTML;
+sub TitleToHTMLFilename;
+sub GetFormattedDate;
 
 
 
@@ -26,7 +35,8 @@ if (!(-d $blog_dir_name)) {
 }
 
 
-ComposeBlog($blog_dir_name,GatherKeywords($blog_dir_name));
+ComposeBlog($blog_dir_name);
+
 
 1;
 
@@ -35,24 +45,11 @@ ComposeBlog($blog_dir_name,GatherKeywords($blog_dir_name));
 
 
 
-sub TitleToHTMLFilename
-{
-	my $title = shift;
 
-	$title =~ s/\<[^\>]+\>//g;
-	$title =~ s/^\s*//g;
-	$title =~ s/\s*$//g;
-	$title =~ s/\s/\_/g;
-	$title =~ s/\W//g;
-
-	return $title.'.html';
-
-}
-
-
-
-
-
+###################################################################
+#
+#  Function:  RipTextFromFile
+#
 sub RipTextFromFile
 {
 
@@ -62,7 +59,7 @@ sub RipTextFromFile
 		die "\n  ERROR:  Failed to locate file '$filename' (ComposeBlogHTML.pl)\n\n";
 	}
 	open(my $File,'<',$filename)
-		|| die "\n  ERROR:  Failed to open file '$filename' (ComposeBlogHTML)\n\n";
+		|| die "\n  ERROR:  Failed to open file '$filename' (ComposeBlogHTML.pl)\n\n";
 
 	my $text = '';
 	while (my $line = <$File>) {
@@ -78,12 +75,16 @@ sub RipTextFromFile
 
 
 
+###################################################################
+#
+#  Function:  ComposeBlog
+#
 sub ComposeBlog
 {
 	
 	my $blog_dir_name = shift;
-	my $keywords_ref  = shift;
 
+	my $keywords_ref  = GatherKeywords($blog_dir_name);
 	my %Keywords = %{$keywords_ref};
 
 	my $blog_template_file_name = $SCRIPT_DIR.'templates/blog.html';
@@ -112,7 +113,7 @@ sub ComposeBlog
 			my $text_to_replace = "__PM_$keyword";
 
 			my $replacement_text;
-			if ($keyword eq 'BLOGTEXT' || $keyword eq 'NAVBARJS') {
+			if ($keyword eq 'BLOGTEXT' || $keyword eq 'NAVBARJS' || $keyword eq 'FONTS') {
 				
 				$replacement_text = RipTextFromFile($Keywords{$keyword});
 
@@ -149,6 +150,10 @@ sub ComposeBlog
 
 
 
+###################################################################
+#
+#  Function:  GatherKeywords
+#
 sub GatherKeywords
 {
 
@@ -162,8 +167,8 @@ sub GatherKeywords
 	$site_dir_name =~ s/\/[^\/]+\/$/\//;
 
 	my @MetadataFileNames;
-	push(@MetadataFileNames,$genre_dir_name.'metadata');
-	push(@MetadataFileNames, $site_dir_name.'metadata');
+	push(@MetadataFileNames,$genre_dir_name.'.metadata');
+	push(@MetadataFileNames, $site_dir_name.'.metadata');
 
 
 	my %Keywords;
@@ -190,11 +195,14 @@ sub GatherKeywords
 	# Grab the title from the html, all clever-like
 	$Keywords{'TITLE'} = GrabTitleFromHTML($Keywords{'BLOGTEXT'});
 
-	# The javascript that puts together the navbar is in src/templates/
-	$Keywords{'NAVBARJS'} = $SCRIPT_DIR.'templates/navbar.js';
-
 	# The blog is considered 'published' when this script is run
 	$Keywords{'PUBLISHDATE'} = GetFormattedDate();
+
+	# The font and navbar files are likely relative to the site 
+	# directory location, so we'll need to make sure we're looking
+	# in the right place
+	if (!(-e $Keywords{'FONTS'   })) { $Keywords{'FONTS'   } = $site_dir_name.$Keywords{'FONTS'   }; }
+	if (!(-e $Keywords{'NAVBARJS'})) { $Keywords{'NAVBARJS'} = $site_dir_name.$Keywords{'NAVBARJS'}; }
 
 	return \%Keywords;
 
@@ -204,6 +212,10 @@ sub GatherKeywords
 
 
 
+###################################################################
+#
+#  Function:  GrabTitleFromHTML
+#
 sub GrabTitleFromHTML
 {
 	my $filename = shift;
@@ -238,6 +250,33 @@ sub GrabTitleFromHTML
 
 
 
+
+###################################################################
+#
+#  Function:  TitleToHTMLFilename
+#
+sub TitleToHTMLFilename
+{
+	my $title = shift;
+
+	$title =~ s/\<[^\>]+\>//g;
+	$title =~ s/^\s*//g;
+	$title =~ s/\s*$//g;
+	$title =~ s/\s/\_/g;
+	$title =~ s/\W//g;
+
+	return $title.'.html';
+
+}
+
+
+
+
+
+###################################################################
+#
+#  Function:  GetFormattedDate
+#
 sub GetFormattedDate 
 {
 	my @Months = ("January","February","March","April","May","June","July","August","September","October","November","December");

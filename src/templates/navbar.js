@@ -10,7 +10,7 @@ var path_modifier = '';
 if (IS_BLOG) path_modifier = '../';  // MAKE SURE this variable (IS_BLOG) is set when we start '<script>'
 
 var RecentPostTuples;
-fs.readFile(path_modifier+'../full-post-list',(err,data) => {
+fs.readFile(path_modifier+'../.full-post-list',(err,data) => {
 	if (err) 
 		throw err;
 	RecentPostTuples = data.toString().split(/\n/,3);
@@ -24,7 +24,7 @@ if (RecentPostTuples.length > 0) {
 	PostListHTML += "<ul>\n";
 	for (var i=0; i<RecentPostTuples.length; i++) {
 		
-		let postlist_title_pattern = /^\s*(\".+\")\s+(\S+)\s*$/;
+		let postlist_title_pattern = /^\s*\"(.+)\"\s+(\S+)\s*$/;
 		let postlist_title = RecentPostTuples[i].match(postlist_title_pattern)[1];
 		let postlist_url   = RecentPostTuples[i].match(postlist_title_pattern)[2];
 
@@ -46,7 +46,7 @@ if (RecentPostTuples.length > 0) {
 //
 
 var GenreList;
-fs.readFile(path_modifier+'../genre-list',(err,data) => {
+fs.readFile(path_modifier+'../.genre-list',(err,data) => {
 	if (err) throw err;
 	GenreList = data.toString().split(/\n/);
 });

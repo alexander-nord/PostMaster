@@ -28,7 +28,7 @@ if (url.match(pagenum_pattern).length > 2) {
 const fs = require('fs');
 
 var RecentPostTuples;
-fs.readFile('recent-posts',(err,data) => {
+fs.readFile('.recent-posts',(err,data) => {
 	if (err)
 		throw err;
 	RecentPostTuples = data.toString().split(/\n/);
@@ -51,9 +51,8 @@ for (var post_id=start_post_id; post_id<end_post_id; post_id++) {
 	let post_img   = RecentPostTuples[post_id].match(post_title_pattern)[4];
 
 	PostListHTML += "<div class=\"catalogEntry\">\n";
-	if (post_img.localeCompare("-") == 0)
-		post_img = "../files/imgs/default.jpg";
-	PostListHTML += "<a href=\"" + post_url + "\"><img class=\"catalogEntryImg\" src=\"" + post_img + "\"></a>\n";
+    if (post_img.localeCompare("-") != 0)
+		PostListHTML += "<a href=\"" + post_url + "\"><img class=\"catalogEntryImg\" src=\"" + post_img + "\"></a>\n";
 	PostListHTML += "<div class=\"catalogEntryTitle\"><a href=\"" + post_url + "\">" + post_title + "</a></div>\n";
 	PostListHTML += "<p class=\"catalogEntryDate\">" + post_date + "</p>\n";
 	PostListHTML += "</div>\n";

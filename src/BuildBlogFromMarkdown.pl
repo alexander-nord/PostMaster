@@ -18,6 +18,7 @@ sub PageDirBuildFail;
 sub FixImageLinks;
 sub CopyFilesToPageDir;
 sub CreatePageDir;
+sub ComposePageHTML;
 
 
 
@@ -41,6 +42,10 @@ if (!(-e $md_file_name)) {
 my ($dir_name,$created_dirs_ref) = CreatePageDir();
 
 CopyFilesToPageDir($dir_name,$md_file_name);
+ComposePageHTML($dir_name);
+
+
+print "PAGEDIR: $dir_name\n";
 
 
 1;
@@ -208,5 +213,29 @@ sub CreatePageDir
 	return ($dir_name,\@CreatedDirs);
 
 }
+
+
+
+
+
+
+###################################################################
+#
+#  Function:  ComposePageHTML
+#
+sub ComposePageHTML
+{
+
+	my $dir_name = shift;
+
+	my $compose_script = $SCRIPT_DIR.'ComposeBlogHTML.pl';
+	my $compose_cmd = "perl $compose_script $dir_name";
+
+	if (system($compose_cmd)) {
+		PageDirBuildFail("Failed to compose HTML in page directory");
+	}
+
+}
+
 
 
