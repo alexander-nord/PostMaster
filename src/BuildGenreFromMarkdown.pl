@@ -34,10 +34,10 @@ if (!(-e $markdown_file_name)) {
 }
 
 
-my $genre_dir_name = SetupGenreDir($markdown_file_name);
+my $genre_dir_name = SetupGenreDir($site_dir_name,$markdown_file_name);
 
 
-print "GENREDIR: $genre_dir_name\n";
+print "GENREDIR:$genre_dir_name\n";
 
 
 1;
@@ -168,9 +168,12 @@ sub GenreDirSetupFail
 sub SetupGenreDir 
 {
 
+	my $site_dir_name      = shift;
 	my $markdown_file_name = shift;
 
+
 	my ($genre_name_html,$genre_desc_html) = GenreMarkdownToHTML($markdown_file_name);
+
 
 	my $genre_name_text = $genre_name_html;
 	$genre_name_text =~ s/<[^>]+>/ /g;
@@ -190,15 +193,22 @@ sub SetupGenreDir
 		die "\n  ERROR:  Failed to create genre directory '$genre_dir_name' (BuildGenreDirFromMarkdown.pl)\n\n";
 	}
 
+
 	open(my $MetadataFile,'>',$genre_dir_name.'.metadata')
 		|| GenreDirSetupFail("Failed to create metadata file",$genre_dir_name);
 	print $MetadataFile "GENRE: $genre_name_html\n";
 	print $MetadataFile "GENREDESCRIPTION: $genre_desc_html\n";
 	close($MetadataFile);
 
+
 	ComposeGenreHTML($genre_dir_name);
 
-	return $genre_dir_name;
+	
+	open(my $GenreListFile,'>>',$site_dir_name.'.genre-list')
+		|| die "\n  ERROR:  Failed to open genre list file '$site_dir_name.genre-list'\n\n";
+	print $GenreListFile "\"$genre_name_html\" $genre_name_text\n";
+	close($GenreListFile);
+
 
 }
 

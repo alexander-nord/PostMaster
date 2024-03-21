@@ -48,6 +48,7 @@ ComposePageHTML($dir_name);
 print "PAGEDIR: $dir_name\n";
 
 
+
 1;
 
 
@@ -221,6 +222,123 @@ sub CreatePageDir
 
 ###################################################################
 #
+#  Function:  RecordPageCreation
+#
+sub RecordPageCreation
+{
+
+	my $page_file_name = shift;
+
+	
+	$page_file_name =~ /^(.+\/)([^\?]+)$/;
+	my $genre_dir_name = $1;
+	my $page_file_base_name = $2;
+
+
+	$genre_dir_name =~ /^(.+\/)([^\/]+)\/$/;
+	my $site_dir_name = $1;
+	my $genre_dir_base_name = $2;
+
+
+	open(my $SiteMetadata,'<',$site_dir_name.'.metadata')
+		|| die "\n  ERROR:  Failed to open metadata file '$site_dir_name.metadata'\n\n";
+	my $site_url;
+	while (my $line = <$SiteMetadata>) {
+		if ($line =~ /^\s*SITEURL\s*:\s*(\S+)/) {
+			$site_url = $1;
+			$site_url =~ s/\/$//;
+			last;
+		}
+	}
+	close($SiteMetadata);
+	
+
+	my $page_url = $site_url.'/'.$genre_dir_base_name.'/'.$page_file_base_name;
+
+
+	open(my $Page,'<',$page_file_name)
+		|| die "\n  ERROR:  Failed to open page file '$page_file_name'\n\n";
+	my $page_title;
+	while (my $line = <$Page>) {
+		if ($line =~ /<h1>\s*(.+)\s*<\/h1>/) {
+			$page_title = $1;
+			last;
+		}
+	}
+	close($Page);
+
+
+	AddToPostList($page_title,$page_url,$site_dir_name.'.full-post-list');
+	AddToPostList($page_title,$page_url,$genre_dir_name.'.genre-post-list');
+
+}
+
+
+
+
+
+
+###################################################################
+#
+#  Function:  AddToPostList
+#
+sub AddToPostList
+{
+
+	my $new_page_title      = shift;
+	my $new_page_url        = shift;
+	my $post_list_file_name = shift;
+
+
+	my @OldPostList;
+
+	if (-e $post_list_file_name) {
+	
+		open(my $PostFile,'<',$post_list_file_name)
+			|| die "\n  ERROR:  Failed to open '$post_list_file_name' (reading)\n\n";
+	
+		while (my $line = <$PostFile>) {
+	
+			$line =~ s/\n|\r//g;
+			next if (!$line);
+
+			push(@OldPostList,$line);
+	
+		}
+	
+		close($PostFile);
+	
+	}
+
+	
+	open(my $PostFile,'>',$post_list_file_name)
+		|| die "\n  ERROR:  Failed to open '$post_list_file_name' (writing)\n\n";
+	
+	print $PostFile "\"$new_page_title\" $new_page_url\n";
+	
+	foreach my $old_post_line (@OldPostList) {
+		
+		$old_post_line =~ /(\S+)\s*$/;
+		my $old_url = $1;
+		
+		if ($old_url ne $new_page_url) {
+			print $PostFile "\"$new_page_title\" $new_page_url\n";
+		}
+
+	}
+
+	close($PostFile);
+
+
+}
+
+
+
+
+
+
+###################################################################
+#
 #  Function:  ComposePageHTML
 #
 sub ComposePageHTML
@@ -228,12 +346,24 @@ sub ComposePageHTML
 
 	my $dir_name = shift;
 
-	my $compose_script = $SCRIPT_DIR.'ComposeBlogHTML.pl';
-	my $compose_cmd = "perl $compose_script $dir_name";
 
-	if (system($compose_cmd)) {
-		PageDirBuildFail("Failed to compose HTML in page directory");
+	my $compose_script = $SCRIPT_DIR.'ComposeBlogHTML.pl';
+	my $compose_cmd = "perl $compose_script $dir_name |";
+
+
+	open(my $PageTitleReader,$compose_cmd)
+		|| PageDirBuildFail("Page composition command '$compose_cmd' failed");
+	my $page_fname_line = <$PageTitleReader>;
+	close($PageTitleReader);
+
+
+	if ($page_fname_line =~ /PAGE:\s*(\S+)/) {
+		my $page_file_name = $1;
+		RecordPageCreation($page_file_name);
+	} else {
+		PageDirBuildFail("Failed to determine new page filename");
 	}
+
 
 }
 

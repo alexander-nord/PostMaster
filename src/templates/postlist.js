@@ -29,8 +29,7 @@ const fs = require('fs');
 
 var RecentPostTuples;
 fs.readFile('.recent-posts',(err,data) => {
-	if (err)
-		throw err;
+	if (err) throw err;
 	RecentPostTuples = data.toString().split(/\n/);
 });
 
@@ -44,17 +43,12 @@ var last_page_num = 1 + int(RecentPostTuples.length / 10);
 var PostListHTML = "\n";
 for (var post_id=start_post_id; post_id<end_post_id; post_id++) {
 
-	let post_title_pattern = /^\s*(\".+\")\s+(\S+)\s+(\S+\s+\S+\s+\S+)\s+(\S+)\s*$/;
+	let post_title_pattern = /^\s*(\".+\")\s+(\S+)\s*$/;
 	let post_title = RecentPostTuples[post_id].match(post_title_pattern)[1];
 	let post_url   = RecentPostTuples[post_id].match(post_title_pattern)[2];
-	let post_date  = RecentPostTuples[post_id].match(post_title_pattern)[3];
-	let post_img   = RecentPostTuples[post_id].match(post_title_pattern)[4];
 
-	PostListHTML += "<div class=\"catalogEntry\">\n";
-    if (post_img.localeCompare("-") != 0)
-		PostListHTML += "<a href=\"" + post_url + "\"><img class=\"catalogEntryImg\" src=\"" + post_img + "\"></a>\n";
-	PostListHTML += "<div class=\"catalogEntryTitle\"><a href=\"" + post_url + "\">" + post_title + "</a></div>\n";
-	PostListHTML += "<p class=\"catalogEntryDate\">" + post_date + "</p>\n";
+	PostListHTML += "<div class=\"genreEntry\">\n";
+	PostListHTML += "<div class=\"genreEntryTitle\"><a href=\"" + post_url + "\">" + post_title + "</a></div>\n";
 	PostListHTML += "</div>\n";
 
 }
@@ -81,7 +75,7 @@ if (pagenum < last_page_num) {
 	last_page_url = base_url + "&pagenum=" + last_page_num;
 }
 
-PostNavHTML  = "<div class=\"catalogPageNav\">\n";
+PostNavHTML  = "<div class=\"genrePageNav\">\n";
 PostNavHTML += "<p>\n";
 
 if (first_page_url) PostNavHTML += "<a href=\"" + first_page_url +"\">";

@@ -35,7 +35,10 @@ if (!(-d $blog_dir_name)) {
 }
 
 
-ComposeBlog($blog_dir_name);
+my $blog_file_name = ComposeBlog($blog_dir_name);
+
+
+print "PAGE: $blog_file_name\n";
 
 
 1;
@@ -142,6 +145,9 @@ sub ComposeBlog
 
 	close($TemplateFile);
 	close($HTMLFile);
+
+
+	return $blog_html_file_name;
 
 }
 

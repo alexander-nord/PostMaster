@@ -1,39 +1,46 @@
 
-///////////////////////////////////////////////////
-//
-// Part 1: List the three most recent posts
-//
-
 const fs = require('fs');
 
 var path_modifier = '';
 if (IS_BLOG) path_modifier = '../';  // MAKE SURE this variable (IS_BLOG) is set when we start '<script>'
 
-var RecentPostTuples;
-fs.readFile(path_modifier+'../.full-post-list',(err,data) => {
-	if (err) 
-		throw err;
-	RecentPostTuples = data.toString().split(/\n/,3);
-});
 
+
+///////////////////////////////////////////////////
+//
+// Part 1: List the three most recent posts
+//
+
+var full_list_name = path_modifier+'../.full-post-list';
 var PostListHTML = "";
-if (RecentPostTuples.length > 0) {
-		
-	PostListHTML += "<li class=\"navTopic\"><a href=\""+path_modifier+"../index.html\">Recent Posts</a></li>\n";
-		
-	PostListHTML += "<ul>\n";
-	for (var i=0; i<RecentPostTuples.length; i++) {
-		
-		let postlist_title_pattern = /^\s*\"(.+)\"\s+(\S+)\s*$/;
-		let postlist_title = RecentPostTuples[i].match(postlist_title_pattern)[1];
-		let postlist_url   = RecentPostTuples[i].match(postlist_title_pattern)[2];
 
-		PostListHTML += "<li class=\"navSubTopic\"><a href=";
-		PostListHTML += postlist_url + ">" + postlist_title;
-		PostListHTML += "</a></li>\n";
+if (fs.existsSync(full_list_name)) {
 
+	var RecentPostTuples;
+	fs.readFile(path_modifier+'../.full-post-list',(err,data) => {
+		if (err) throw err;
+		RecentPostTuples = data.toString().split(/\n/,3);
+	});
+
+	if (RecentPostTuples.length > 0) {
+		
+		PostListHTML += "<li class=\"navTopic\"><a href=\""+path_modifier+"../index.html\">Recent Posts</a></li>\n";
+		
+		PostListHTML += "<ul>\n";
+		for (var i=0; i<RecentPostTuples.length; i++) {
+		
+			let postlist_title_pattern = /^\s*\"(.+)\"\s+(\S+)\s*$/;
+			let postlist_title = RecentPostTuples[i].match(postlist_title_pattern)[1];
+			let postlist_url   = RecentPostTuples[i].match(postlist_title_pattern)[2];
+
+			PostListHTML += "<li class=\"navSubTopic\"><a href=";
+			PostListHTML += postlist_url + ">" + postlist_title;
+			PostListHTML += "</a></li>\n";
+
+		}
+		PostListHTML += "</ul>\n";
+	
 	}
-	PostListHTML += "</ul>\n";
 
 }
 
@@ -45,16 +52,27 @@ if (RecentPostTuples.length > 0) {
 // Part 2: List blogpost genre indices
 //
 
-var GenreList;
-fs.readFile(path_modifier+'../.genre-list',(err,data) => {
-	if (err) throw err;
-	GenreList = data.toString().split(/\n/);
-});
-
+var genre_list_name = path_modifier+'../.genre-post-list';
 var GenreListHTML = "";
-for (var i=0; i<GenreList.length; i++) {
-	let genre = GenreList[i];
-	GenreListHTML += "<li class=\"navTopic\"><a href=\"../"+path_modifier+genre+"/index.html\">"+genre+"</a></li>\n";
+
+if (fs.existsSync(genre_list_name)) {
+	
+	var GenreListTuples;
+	fs.readFile(genre_list_name,(err,data) => {
+		if (err) throw err;
+		GenreListTuples = data.toString().split(/\n/);
+	});
+
+	for (var i=0; i<GenreListTuples.length; i++) {
+
+		let genre_pattern = /^\s*\"(.+)\"\s+(\S+)\s*$/;
+		let genre_title = GenreListTuples[i].match(postlist_title_pattern)[1];
+		let genre_path  = GenreListTuples[i].match(postlist_title_pattern)[2];
+
+		GenreListHTML += "<li class=\"navTopic\"><a href=\"../"+path_modifier+genre_path+"/index.html\">"+genre_title+"</a></li>\n";
+
+	}
+
 }
 
 
@@ -65,24 +83,29 @@ for (var i=0; i<GenreList.length; i++) {
 //
 
 
-var StaticTuples;
-fs.readFile(path_modifier+'../statics/static-posts',(err,data) => {
-	if (err) throw err;
-	StaticTuples = data.toString().split(/\n/);
-});
-
+var static_list_name = path_modifier+'../statics/.static-post-list';
 var StaticListHTML = "";
-for (var i=0; i<StaticTuples.length; i++) {
 
-	let tuple_title_pattern = /^\s*(\".+\")\s+(\S+)\s+(\d)\s*$/;
+if (fs.existsSync(static_list_name)) {
 
-	let tuple_title    = StaticTuples[i].match(tuple_title_pattern)[1];
-	let tuple_url      = StaticTuples[i].match(tuple_title_pattern)[2];
-	let tuple_nav_bool = StaticTuples[i].match(tuple_title_pattern)[3];
+	var StaticTuples;
+	fs.readFile(path_modifier+'../statics/.static-post-list',(err,data) => {
+		if (err) throw err;
+		StaticTuples = data.toString().split(/\n/);
+	});
 
-	if (tuple_nav_bool == 1)
-		StaticListHTML += "<li class=\"navTopic\"><a href=\"../"+path_modifier+tuple_url + "\">"+tuple_title+"</a></li>\n";
+	for (var i=0; i<StaticTuples.length; i++) {
 
+		let tuple_title_pattern = /^\s*(\".+\")\s+(\S+)\s+(\d)\s*$/;
+
+		let tuple_title    = StaticTuples[i].match(tuple_title_pattern)[1];
+		let tuple_url      = StaticTuples[i].match(tuple_title_pattern)[2];
+		let tuple_nav_bool = StaticTuples[i].match(tuple_title_pattern)[3];
+
+		if (tuple_nav_bool == 1)
+			StaticListHTML += "<li class=\"navTopic\"><a href=\"../"+path_modifier+tuple_url + "\">"+tuple_title+"</a></li>\n";
+
+	}
 }
 
 
