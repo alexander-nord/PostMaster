@@ -50,14 +50,14 @@ sub CodeBlockCatch
 	my $str = shift;
 
 	my @Lines = split(/\n/,$str);
-	$str = "<code>";
+	$str = "<code>\n";
 	
 	foreach my $line (@Lines) {
 		$line =~ s/^\s*\`\s*//;
-		$str = $str."\n".$line if ($line =~ /\S/);
+		$str = $str.$line."\n" if ($line =~ /\S/);
 	}
 	
-	return $str."\n</code>\n";
+	return $str."</code><br>\n";
 
 }
 
@@ -106,7 +106,7 @@ sub OrderedListCatch
 	
 	foreach my $line (@Lines) {
 		$line =~ s/^\s*\d+\.?\s+//;
-		$str = $str."\n<li>".$line."</li>" if ($line =~ /\S/);
+		$str = $str."\n<li>".$line."</li><br>" if ($line =~ /\S/);
 	}
 	
 	return $str."\n</ol>\n";
@@ -133,7 +133,7 @@ sub UnorderedListCatch
 	foreach my $line (@Lines) {
 		$line =~ s/^\s*\-\s+//;
 		$line =~ s/^\s*\+\s+//;
-		$str = $str."\n<li>".$line."</li>" if ($line =~ /\S/);
+		$str = $str."\n<li>".$line."</li><br>" if ($line =~ /\S/);
 	}
 	
 	return $str."\n</ul>\n";
@@ -301,7 +301,7 @@ sub TranslateStringToHTML
 {
 
 	my $md_str = shift;
-	$md_str =~ s/\n|\r/ /g;
+	$md_str =~ s/\n|\r/ /g unless($md_str =~ /^\s*<code>/); # Preserve linebreaks for code
 	
 	my $html_str = PerformQuickConversions($md_str);
 
@@ -316,7 +316,7 @@ sub TranslateStringToHTML
 	$html_str = TagScan($html_str,'*','<em>','&lowast;');
 	$html_str = TagScan($html_str,'_','<em>',0);
 
-	$html_str =~ s/\s+/ /g;
+	#$html_str =~ s/\s+/ /g;
 	$html_str =~ s/^\s+//;
 	$html_str =~ s/\s+$//;
 
@@ -377,7 +377,7 @@ sub ConvertFileToHTML
 			$next_paragraph = UnorderedListCatch($next_paragraph) if ($is_unordered_list);
 
 			my $translation = TranslateStringToHTML($next_paragraph);
-			if ($translation !~ /^\<h|^\<code|^\<blockquote|^\<ol|^\<ul/) {
+			if ($translation !~ /^\s*</) {
 				$translation = '<p>'.$translation.'</p>';
 			}
 			push(@Paragraphs,$translation);
@@ -399,7 +399,7 @@ sub ConvertFileToHTML
 		$next_paragraph = UnorderedListCatch($next_paragraph) if ($is_unordered_list);
 	
 		my $translation = TranslateStringToHTML($next_paragraph);
-		if ($translation !~ /^\<h|^\<code|^\<blockquote|^\<ol|^\<ul/) {
+		if ($translation !~ /^\s*</) {
 			$translation = '<p>'.$translation.'</p>';
 		}
 		push(@Paragraphs,$translation);

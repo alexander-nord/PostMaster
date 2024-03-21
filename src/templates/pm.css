@@ -86,7 +86,12 @@ li a:hover {
 
 
 .blogDate{
-    font-size: 13px;
+    font-size: 14px;
+    color: gray;
+    z-index: 1;
+}
+.blogDate sup {
+    font-size: 8px;
     color: gray;
     z-index: 1;
 }
@@ -95,10 +100,25 @@ li a:hover {
 .blogContent {
     font-family: 'Sawarabi Mincho', sans-serif;
     position: absolute;
-    font-size: 19px;
+    font-size: 20px;
     margin: 135px 24vw 0 2vw;
     padding: 50px 7vw 120px 6vw;
     width: 70vw;
+}
+.blogContent code {
+    background-color: #ffffff00;
+    font-family: 'Courier Prime';
+    white-space: pre-line;
+    font-size: 17px;
+}
+.blogContent blockquote {
+    font-size: 17px;
+}
+.blogContent ul {
+    padding: 10px 7vw 15px 4vw;
+}
+.blogContent ol {
+    padding: 10px 7vw 15px 4vw;
 }
 
 
@@ -107,7 +127,7 @@ li a:hover {
     margin-left: auto;
     margin-right: auto;
     padding: 50px 1vw 50px 0;
-    width: 50%;
+    width: 65%;
 }
 
 
