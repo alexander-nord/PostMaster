@@ -13,6 +13,7 @@ $SCRIPT_DIR = '.' if (!$SCRIPT_DIR);
 $SCRIPT_DIR = $SCRIPT_DIR.'/';
 
 
+sub CloneFromGitHub;
 sub SetupBaseFiles;
 sub SetupFail;
 sub GetKeywords;
@@ -49,10 +50,9 @@ $site_dir_name = $all_sites_dir_name.$site_dir_name;
 if (-d $site_dir_name) {
 	die "\n  ERROR:  Site directory '$site_dir_name' already exists (BuildSiteShell.pl)\n\n";
 }
-if (system("mkdir $site_dir_name")) {
-	die "\n  ERROR:  Failed to create site directory '$site_dir_name' (BuildSiteShell.pl)\n\n";
-}
 
+
+CloneFromGitHub($site_dir_name,$Keywords{'GITUSER'},$Keywords{'GITREPO'});
 
 SetupBaseFiles($site_dir_name,\%Keywords);
 
@@ -63,6 +63,29 @@ print "SITEDIR:$site_dir_name\n";
 1;
 
 
+
+
+
+
+
+
+
+###################################################################
+#
+#  Function:  SetupBaseFiles
+#
+sub CloneFromGitHub
+{
+	my $site_dir_name   = shift;
+	my $github_username = shift;
+	my $github_repo     = shift;
+
+	my $clone_cmd = "git clone https://github.com/$github_username/$github_repo.github.io $site_dir_name";
+	if (system($clone_cmd)) {
+		die "\n  ERROR:  Site directory creation / GitHub cloning failed, command: '$clone_cmd' (BuildSiteShell.pl)\n\n";
+	}
+
+}
 
 
 
@@ -158,7 +181,7 @@ sub GetKeywords
 
 	close($TempMetadata);
 
-	foreach my $mandatory_keyword ("OWNER","SITE","SITEURL") {
+	foreach my $mandatory_keyword ("OWNER","GITUSER","GITREPO","SITE","SITEURL") {
 		if (!$Keywords{$mandatory_keyword}) {
 			die "\n  ERROR:  Mandatory keyword '$mandatory_keyword' not in temporary metadata file '$temp_metadata_filename' (BuildSiteShell.pl)\n\n";
 		}
