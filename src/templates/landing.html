@@ -2,16 +2,10 @@
 <html lang="en">
 
 
-
-<!--
-//
-// Metadata-type stuff
-//
--->
 <head>
-<title>__PM_GENRE</title>
+<title>__PM_SITE</title>
 <meta content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="../__PM_CSS">
+<link rel="stylesheet" href="../../__PM_CSS">
 __PM_FONTS
 </head>
 
@@ -23,40 +17,26 @@ __PM_FONTS
 
 <!--
 //
-// Sketch your 'autograph'
+// On the landing page, we'll just have the autograph (no title)
 //
 -->
 <div class="autographHeader">
-<a href="../index.html">
-<img class="autographImg" src="../__PM_AUTOGRAPH" alt="__PM_SITE">
-</a>
-</div>
-
-
-
-
-<!--
-//
-// The genre to which this blog belongs
-//
--->
-<div class="genreTitle">
-<a href="index.html"><h2>__PM_GENRE</h2></a>
+<img class="autographImg" src="__PM_AUTOGRAPH" alt="__PM_SITE">
 </div>
 
 
 
 <!--
 //
-// A description of the content you can expect to find in this genre of posts
+// A full list of the posts on this site
 //
 -->
 <div class="genreBody">
 <p class="genreDesc">
-__PM_GENREDESCRIPTION
+__PM_SITEDESCRIPTION
 </p>
 <script>
-var post_list_fname='.genre-post-list';
+var post_list_fname='.full-post-list';
 __PM_POSTLISTJS
 </script>
 </div>
@@ -69,7 +49,7 @@ __PM_POSTLISTJS
 //
 -->
 <script>
-var path_to_landing = '../';
+var path_to_landing = './';
 __PM_NAVBARJS
 </script>
 

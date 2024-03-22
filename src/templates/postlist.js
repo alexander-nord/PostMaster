@@ -7,6 +7,7 @@
 
 const url = window.location.href;
 
+
 // Format should be site.ext/genre/index.html&pagenum=[int] (or no '&pagenum=[int]')
 let pagenum_pattern = /^(.+)\&pagenum=(\d+)$/;
 var base_url = url;
@@ -27,29 +28,35 @@ if (url.match(pagenum_pattern).length > 2) {
 
 const fs = require('fs');
 
-var RecentPostTuples;
-fs.readFile('.recent-posts',(err,data) => {
-	if (err) throw err;
-	RecentPostTuples = data.toString().split(/\n/);
-});
 
-var start_post_id = (pagenum - 1) * 10;
-var end_post_id   = start_post_id + 10;
-if (end_post_id >= RecentPostTuples.length)
-	end_post_id = RecentPostTuples.length;
+if (fs.existsSync(post_list_fname)) {
 
-var last_page_num = 1 + int(RecentPostTuples.length / 10);
+	var RecentPostTuples;
+	fs.readFile(post_list_fname,(err,data) => {
+		if (err) throw err;
+		RecentPostTuples = data.toString().split(/\n/);
+	});
 
-var PostListHTML = "\n";
-for (var post_id=start_post_id; post_id<end_post_id; post_id++) {
+	var start_post_id = (pagenum - 1) * 10;
+	var end_post_id   = start_post_id + 10;
+	if (end_post_id >= RecentPostTuples.length)
+		end_post_id  = RecentPostTuples.length;
 
-	let post_title_pattern = /^\s*(\".+\")\s+(\S+)\s*$/;
-	let post_title = RecentPostTuples[post_id].match(post_title_pattern)[1];
-	let post_url   = RecentPostTuples[post_id].match(post_title_pattern)[2];
+	var last_page_num = 1 + int(RecentPostTuples.length / 10);
 
-	PostListHTML += "<div class=\"genreEntry\">\n";
-	PostListHTML += "<div class=\"genreEntryTitle\"><a href=\"" + post_url + "\">" + post_title + "</a></div>\n";
-	PostListHTML += "</div>\n";
+	var PostListHTML = "\n";
+	for (var post_id=start_post_id; post_id<end_post_id; post_id++) {
+
+		let post_title_pattern = /^\s*(\".+\")\s+(\S+)\s*$/;
+		let post_title = RecentPostTuples[post_id].match(post_title_pattern)[1];
+		let post_url   = RecentPostTuples[post_id].match(post_title_pattern)[2];
+
+		PostListHTML += "<div class=\"genreEntry\">\n";
+		PostListHTML += "<div class=\"genreEntryTitle\"><a href=\"";
+		PostListHTML += post_url+"\">"+post_title+"</a></div>\n";
+		PostListHTML += "</div>\n";
+
+	}
 
 }
 

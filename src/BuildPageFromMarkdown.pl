@@ -41,6 +41,7 @@ if (!(-e $md_file_name)) {
 
 my ($dir_name,$created_dirs_ref) = CreatePageDir();
 
+
 CopyFilesToPageDir($dir_name,$md_file_name);
 ComposePageHTML($dir_name);
 
@@ -289,7 +290,6 @@ sub AddToPostList
 	my $new_page_url        = shift;
 	my $post_list_file_name = shift;
 
-
 	my @OldPostList;
 
 	if (-e $post_list_file_name) {
@@ -298,7 +298,7 @@ sub AddToPostList
 			|| die "\n  ERROR:  Failed to open '$post_list_file_name' (reading)\n\n";
 	
 		while (my $line = <$PostFile>) {
-	
+
 			$line =~ s/\n|\r//g;
 			next if (!$line);
 
@@ -318,11 +318,12 @@ sub AddToPostList
 	
 	foreach my $old_post_line (@OldPostList) {
 		
-		$old_post_line =~ /(\S+)\s*$/;
-		my $old_url = $1;
+		$old_post_line =~ /^\s*\"(.+)\"\s+(\S+)\s*$/;
+		my $old_title = $1;
+		my $old_url   = $2;
 		
 		if ($old_url ne $new_page_url) {
-			print $PostFile "\"$new_page_title\" $new_page_url\n";
+			print $PostFile "\"$old_title\" $old_url\n";
 		}
 
 	}

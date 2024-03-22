@@ -15,7 +15,11 @@ $SCRIPT_DIR = $SCRIPT_DIR.'/';
 
 sub GenreMarkdownToHTML;
 sub SafeTagsCheck;
+sub GenreDirSetupFail;
+sub PullPlainName;
+sub SetupGenreDir;
 sub ComposeGenreHTML;
+
 
 
 if (@ARGV != 2) {
@@ -27,6 +31,8 @@ my $site_dir_name = $ARGV[0];
 if (!(-d $site_dir_name)) {
 	die "\n  ERROR:  Failed to locate site directory '$site_dir_name' (BuildGenreDirFromMarkdown.pl)\n\n";
 }
+$site_dir_name = $site_dir_name.'/' if ($site_dir_name !~ /\/$/);
+
 
 my $markdown_file_name = $ARGV[1];
 if (!(-e $markdown_file_name)) {
@@ -208,6 +214,8 @@ sub SetupGenreDir
 
 	my $genre_name_text = PullPlainName($markdown_file_name);
 
+	$genre_name_text =~ s/^\s*//;
+	$genre_name_text =~ s/\s*$//;
 	$genre_name_text =~ s/\s/_/g;
 	while ($genre_name_text =~ /__/) {
 		$genre_name_text =~ s/__/_/g;
@@ -265,7 +273,7 @@ sub ComposeGenreHTML
 	my $compose_genre_script = $SCRIPT_DIR.'ComposeGenreHTML.pl';
 	my $compose_genre_cmd = "perl $compose_genre_script $genre_dir_name";
 	if (system($compose_genre_cmd)) {
-		GenreDirSetupFail("Failed to compose genre index HTML",$genre_dir_name);
+		GenreDirSetupFail("Failed to compose genre index HTML (command:'$compose_genre_cmd')",$genre_dir_name);
 	}
 
 }

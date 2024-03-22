@@ -181,7 +181,7 @@ sub GetKeywords
 
 	close($TempMetadata);
 
-	foreach my $mandatory_keyword ("OWNER","GITUSER","GITREPO","SITE","SITEURL") {
+	foreach my $mandatory_keyword ("OWNER","GITUSER","GITREPO","SITE","SITEDESCRIPTION","SITEURL") {
 		if (!$Keywords{$mandatory_keyword}) {
 			die "\n  ERROR:  Mandatory keyword '$mandatory_keyword' not in temporary metadata file '$temp_metadata_filename' (BuildSiteShell.pl)\n\n";
 		}
