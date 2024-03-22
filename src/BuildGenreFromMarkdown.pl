@@ -132,13 +132,16 @@ sub SafeTagsCheck
 		if ($bit =~ /^\/?(\S+).*>$/) {
 			my $tag = $1;
 			if ($SafeTags{$tag}) {
-				$out_html_str = $out_html_str.'<'.$bit;
+				$out_html_str = $out_html_str.' <'.$bit;
 			}
 		} else {
-			$out_html_str = $out_html_str.$bit;
+			$out_html_str = $out_html_str.' '.$bit;
 		}
 
 	}
+
+	$out_html_str =~ s/^\s*//;
+	$out_html_str =~ s/\s*$//;
 
 	return $out_html_str;
 

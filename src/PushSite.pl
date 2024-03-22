@@ -8,8 +8,8 @@ use Cwd;
 sub GenCommitMessage;
 
 
-if (@ARGV != 1) {
-	die "\n  USAGE:  ./PushSite.pl [path/to/site]\n\n";
+if (@ARGV != 1 && @ARGV != 2) {
+	die "\n  USAGE:  ./PushSite.pl [path/to/site] {OPTIONAL:\"Commit Message\"}\n\n";
 }
 
 
@@ -19,10 +19,12 @@ if (!(-d $site_dir_name)) {
 }
 
 
+my $commit_message;
+if (scalar(@ARGV) == 2) { $commit_message = $ARGV[1];           }
+else                    { $commit_message = GenCommitMessage(); }
+
+
 chdir "$site_dir_name";
-
-my $commit_message = GenCommitMessage();
-
 my $push_cmd = "git add -A && git commit -m \"$commit_message\" && git push origin main";
 if (system($push_cmd)) {
 	die "\n  ERROR:  Push command '$push_cmd' failed (PushSite.pl)\n\n";
