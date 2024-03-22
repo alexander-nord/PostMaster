@@ -309,10 +309,9 @@ sub GetSiteDescription
 	$site_desc_html =~ s/>/></g;
 	my $formatted_desc_html = "";
 	foreach my $desc_bit (split(/</,$site_desc_html)) {
-		if ($desc_bit =~ /^\s*\/?(\S+)>$/) {
+		if ($desc_bit =~ /^\/?(\S+)\s*.*>$/) {
 			my $tag = $1;
-			if ($SafeTags{$tag})
-			 {
+			if ($SafeTags{$tag}) {
 				$formatted_desc_html = $formatted_desc_html.' <'.$desc_bit;
 			}
 		} else {
