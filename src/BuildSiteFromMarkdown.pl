@@ -2,6 +2,7 @@
 use warnings;
 use strict;
 use POSIX;
+use Cwd;
 
 
 my $WORKING_DIR = getcwd();
@@ -85,9 +86,14 @@ sub CloneFromGitHub
 	my $github_username = shift;
 	my $github_repo     = shift;
 
-	my $clone_cmd = "git clone https://github.com/$github_username/$github_repo.github.io $site_dir_name";
+	my $clone_cmd = "git clone https://github.com/$github_username/$github_repo $site_dir_name";
 	if (system($clone_cmd)) {
 		die "\n  ERROR:  Site directory creation / GitHub cloning failed, command: '$clone_cmd' (BuildSiteFromMarkdown.pl)\n\n";
+	}
+
+	if (-e $site_dir_name.'.metadata') {
+		print "SITEDIR:$site_dir_name\n(pre-existing repo)\n";
+		exit 0;
 	}
 
 }
@@ -359,7 +365,7 @@ sub GetKeywords
 
 	close($TempMetadata);
 
-	foreach my $mandatory_keyword ("OWNER","GITUSER","GITREPO","SITE","SITEURL") {
+	foreach my $mandatory_keyword ("OWNER","SITE","SITEURL","GITUSER","GITREPO","CPANELDIR") {
 		if (!$Keywords{$mandatory_keyword}) {
 			die "\n  ERROR:  Mandatory keyword '$mandatory_keyword' not in temporary metadata file '$temp_metadata_file_name' (BuildSiteFromMarkdown.pl)\n\n";
 		}
