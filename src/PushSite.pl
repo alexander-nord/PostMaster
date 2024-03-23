@@ -6,7 +6,7 @@ use Cwd;
 
 
 if (@ARGV != 2 && @ARGV != 3) {
-	die "\n  USAGE:  ./PushSite.pl [path/to/site] [cpanel/deploy/dir] {OPTIONAL: Commit Message}\n\n";
+	die "\n  USAGE:  ./PushSite.pl [path/to/site] [cpanel-username] {OPTIONAL: Commit Message}\n\n";
 }
 
 
@@ -17,8 +17,8 @@ if (!(-d $site_dir_name)) {
 $site_dir_name = $site_dir_name.'/' if ($site_dir_name !~ /\/$/);
 
 
-my $base_deploy_path = $ARGV[1];
-$base_deploy_path = $base_deploy_path.'/' if ($base_deploy_path !~ /\/$/);
+my $cpanel_root = '/home/'.$ARGV[1];
+$cpanel_root =~ s/\/$//;
 
 
 my $commit_message;
@@ -26,7 +26,7 @@ if (scalar(@ARGV) == 3) { $commit_message = $ARGV[2];           }
 else                    { $commit_message = GenCommitMessage(); }
 
 
-GitAddAndBuildYML($site_dir_name,$base_deploy_path,$commit_message);
+GitAddAndBuildYML($site_dir_name,$cpanel_root,$commit_message);
 
 
 1;
@@ -42,9 +42,9 @@ GitAddAndBuildYML($site_dir_name,$base_deploy_path,$commit_message);
 sub GitAddAndBuildYML
 {
 
-	my $site_dir_name    = shift;
-	my $base_deploy_path = shift;
-	my $commit_message   = shift;
+	my $site_dir_name  = shift;
+	my $cpanel_root    = shift;
+	my $commit_message = shift;
 
 
 	my %BlockedDirs;
@@ -60,6 +60,9 @@ sub GitAddAndBuildYML
 
 	
 	chdir $site_dir_name;
+	my $local_site_name = getcwd();
+	$local_site_name =~ s/^.+\/([^\/]+)\/?$/$1/;
+	$local_site_name = $local_site_name.'/';
 
 
 	my $yml_file_name = '.cpanel.yml';
@@ -70,35 +73,35 @@ sub GitAddAndBuildYML
 	print $YML "---\n";
 	print $YML "deployment:\n";
 	print $YML "  tasks:\n";
-	print $YML "    - /bin/rm -rf $base_deploy_path\n";
+	print $YML "    - /bin/rm -rf $cpanel_root/public_html/\n";
+	print $YML "    - /bin/rm -rf $cpanel_root/www/\n";
+	print $YML "    - /bin/mkdir  $cpanel_root/public_html/\n";
+	print $YML "    - /bin/mkdir  $cpanel_root/www/\n";
+
 
 	my @SubdirList = ('');
 	foreach my $subdir_name (@SubdirList) {
 
-		print $YML "    - /bin/mkdir $base_deploy_path$subdir_name\n";
-
-		my $Subdir;
-		if ($subdir_name) {
-			opendir($Subdir,$subdir_name)
-				|| die "\n  ERROR:  Failed to open subdirectory '$subdir_name' (PushSite.pl)\n\n";
-		} else {
-			opendir($Subdir,'.')
-				|| die "\n  ERROR:  Failed to open directory '$site_dir_name' (PushSite.pl)\n\n";
-		}
+		opendir(my $Subdir,"./$subdir_name")
+			|| die "\n  ERROR:  Failed to open subdirectory '$site_dir_name$subdir_name' (PushSite.pl)\n\n";
 		
 		while (my $fname = readdir($Subdir)) {
 
 			$fname =~ s/\/$//;
 			next if ($BlockedDirs{$fname});
-			$fname = $subdir_name.$fname;
 
-			if (-d $site_dir_name.$fname) {
-				push(@SubdirList,$fname.'/');
+			if (-d "$subdir_name$fname") {
+				push(@SubdirList,$subdir_name.$fname.'/');
+				print $YML "    - /bin/mkdir $cpanel_root/public_html/$subdir_name$fname\n";
+				print $YML "    - /bin/mkdir $cpanel_root/www/$subdir_name$fname\n";
 			} else {
-				if (system("git add $fname")) {
-					die "\n  ERROR:  Failed to git add file '$fname' (PushSite.pl)\n\n";
+				if (system("git add $subdir_name$fname")) {
+					die "\n  ERROR:  Failed to git add file '$subdir_name$fname' (PushSite.pl)\n\n";
 				}
-				print $YML "    - /bin/cp $fname $base_deploy_path$subdir_name\n" unless ($DoNotPublish{$fname});
+				if (!$DoNotPublish{$fname}) {
+					print $YML "    - /bin/cp $cpanel_root/$local_site_name$subdir_name$fname $cpanel_root/public_html/$subdir_name\n";
+					print $YML "    - /bin/cp $cpanel_root/$local_site_name$subdir_name$fname $cpanel_root/www/$subdir_name\n";
+				}
 			}
 
 		}
@@ -108,11 +111,12 @@ sub GitAddAndBuildYML
 	close($YML);
 	
 	
+	# Now that we're done walking the directories, we can add the cpanel YML!
 	if (system("git add .cpanel.yml")) {
 		die "\n  ERROR:  Failed to git add cpanel YML file (PushSite.pl)\n\n";
 	}
 
-	if (system("git commit -m \"$commit_message\" && git push origin main")) {
+	if (system("git commit -m \"$commit_message\" && git push -u origin HEAD")) {
 		die "\n  ERROR:  Failed to commit or push to main (PushSite.pl)\n\n";
 	}
 

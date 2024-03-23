@@ -14,7 +14,7 @@ $SCRIPT_DIR = '.' if (!$SCRIPT_DIR);
 $SCRIPT_DIR = $SCRIPT_DIR.'/';
 
 
-sub CloneFromGitHub;
+sub InitCPanelRepo;
 sub ComposeLandingPage;
 sub SetupBaseFiles;
 sub SetupFail;
@@ -55,7 +55,7 @@ if (-d $site_dir_name) {
 }
 
 
-CloneFromGitHub($site_dir_name,$Keywords{'GITUSER'},$Keywords{'GITREPO'});
+InitCPanelRepo($site_dir_name,$Keywords{'CPANELUSER'},$Keywords{'CPANELREPO'});
 
 $keywords_ref = SetupBaseFiles($site_dir_name,$ARGV[1],\%Keywords);
 %Keywords = %{$keywords_ref};
@@ -78,23 +78,23 @@ print "SITEDIR:$site_dir_name\n";
 
 ###################################################################
 #
-#  Function:  SetupBaseFiles
+#  Function:  InitCPanelRepo
 #
-sub CloneFromGitHub
+sub InitCPanelRepo
 {
-	my $site_dir_name   = shift;
-	my $github_username = shift;
-	my $github_repo     = shift;
+	my $site_dir_name = shift;
+	my $cpanel_user   = shift;
+	my $cpanel_repo   = shift;
 
-	my $clone_cmd = "git clone https://github.com/$github_username/$github_repo $site_dir_name";
+	# NOTE: It's probably best to require a theoretical user to
+	#       provide the CPanel SSH link and then regex these
+	#       bits of information out of them (and into Keywords)
+
+	my $clone_cmd = "git clone ssh://$cpanel_user\@$site_dir_name/home/$cpanel_user/$site_dir_name $site_dir_name";
 	if (system($clone_cmd)) {
-		die "\n  ERROR:  Site directory creation / GitHub cloning failed, command: '$clone_cmd' (BuildSiteFromMarkdown.pl)\n\n";
+		die "\n  ERROR:  Site directory creation / Cpanel cloning failed, command: '$clone_cmd' (BuildSiteFromMarkdown.pl)\n\n";
 	}
 
-	if (-e $site_dir_name.'.metadata') {
-		print "SITEDIR:$site_dir_name\n(pre-existing repo)\n";
-		exit 0;
-	}
 
 }
 
@@ -365,7 +365,7 @@ sub GetKeywords
 
 	close($TempMetadata);
 
-	foreach my $mandatory_keyword ("OWNER","SITE","SITEURL","GITUSER","GITREPO","CPANELDIR") {
+	foreach my $mandatory_keyword ("OWNER","SITE","SITEURL","CPANELUSER","CPANELREPO") {
 		if (!$Keywords{$mandatory_keyword}) {
 			die "\n  ERROR:  Mandatory keyword '$mandatory_keyword' not in temporary metadata file '$temp_metadata_file_name' (BuildSiteFromMarkdown.pl)\n\n";
 		}
