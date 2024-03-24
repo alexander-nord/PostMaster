@@ -5,8 +5,14 @@ use POSIX;
 use Cwd;
 
 
+sub GetCpanelUsername;
+sub GitAddAndBuildYML;
+sub GenCommitMessage;
+
+
+
 if (@ARGV != 2 && @ARGV != 3) {
-	die "\n  USAGE:  ./PushSite.pl [path/to/site] [cpanel-username] {OPTIONAL: Commit Message}\n\n";
+	die "\n  USAGE:  ./PushSite.pl [path/to/site] {OPTIONAL: Commit Message}\n\n";
 }
 
 
@@ -17,7 +23,10 @@ if (!(-d $site_dir_name)) {
 $site_dir_name = $site_dir_name.'/' if ($site_dir_name !~ /\/$/);
 
 
-my $cpanel_root = '/home/'.$ARGV[1];
+my $cpanel_username = GetCpanelUsername($site_dir_name.'.metadata');
+
+
+my $cpanel_root = '/home/'.$cpanel_username;
 $cpanel_root =~ s/\/$//;
 
 
@@ -30,6 +39,50 @@ GitAddAndBuildYML($site_dir_name,$cpanel_root,$commit_message);
 
 
 1;
+
+
+
+
+
+
+
+###################################################################
+#
+#  Function:  GetCpanelUsername
+#
+sub GetCpanelUsername
+{
+
+	my $metadata_file_name = shift;
+
+	if (!(-e $metadata_file_name)) {
+		die "\n  ERROR:  Failed to locate metadata file '$metadata_file_name' (PushSite.pl)\n\n";
+	}
+	open(my $MetadataFile,'<',$metadata_file_name)
+		|| die "\n  ERROR:  Failed to open metadata file '$metadata_file_name' (PushSite.pl)\n\n";
+
+	my $cpanel_url = '';
+	while (my $line <$MetadataFile>) {
+		next if (!$line !~ /^\s*CPANELURL\s*:\s*(\S+)\s*$/);
+		$cpanel_url = $1;
+		last;
+	}
+	close($MetadataFile);
+
+	if (!$cpanel_url) {
+		die "\n  ERROR:  Metadata file '$metadata_file_name' does not have required field 'CPANELURL' (PushSite.pl)\n\n";
+	}
+
+
+	$cpanel_url =~ /\/home\/([^\/]+)\//;
+	my $cpanel_username = $1;
+
+
+	return $cpanel_username;
+
+}
+
+
 
 
 
@@ -133,7 +186,6 @@ sub GitAddAndBuildYML
 #
 sub GenCommitMessage
 {
-
         my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
         $year += 1900;
         $mon++;

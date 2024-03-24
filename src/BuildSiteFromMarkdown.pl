@@ -41,7 +41,7 @@ my $keywords_ref = GetKeywords($ARGV[0],$ARGV[1]);
 my %Keywords = %{$keywords_ref};
 
 
-my $site_dir_name = $Keywords{'SITE'};
+my $site_dir_name = $Keywords{'SITENAME'};
 $site_dir_name =~ s/\W/_/g;
 while ($site_dir_name =~ /__/) {
 	$site_dir_name =~ s/__/_/g;
@@ -55,7 +55,7 @@ if (-d $site_dir_name) {
 }
 
 
-InitCPanelRepo($site_dir_name,$Keywords{'CPANELUSER'},$Keywords{'CPANELREPO'});
+InitCPanelRepo($site_dir_name,$Keywords{'CPANELURL'});
 
 $keywords_ref = SetupBaseFiles($site_dir_name,$ARGV[1],\%Keywords);
 %Keywords = %{$keywords_ref};
@@ -83,14 +83,13 @@ print "SITEDIR:$site_dir_name\n";
 sub InitCPanelRepo
 {
 	my $site_dir_name = shift;
-	my $cpanel_user   = shift;
-	my $cpanel_repo   = shift;
+	my $cpanel_url    = shift;
 
 	# NOTE: It's probably best to require a theoretical user to
 	#       provide the CPanel SSH link and then regex these
 	#       bits of information out of them (and into Keywords)
 
-	my $clone_cmd = "git clone ssh://$cpanel_user\@$site_dir_name/home/$cpanel_user/$site_dir_name $site_dir_name";
+	my $clone_cmd = "git clone $cpanel_url $site_dir_name";
 	if (system($clone_cmd)) {
 		die "\n  ERROR:  Site directory creation / Cpanel cloning failed, command: '$clone_cmd' (BuildSiteFromMarkdown.pl)\n\n";
 	}
@@ -365,7 +364,7 @@ sub GetKeywords
 
 	close($TempMetadata);
 
-	foreach my $mandatory_keyword ("OWNER","SITE","SITEURL","CPANELUSER","CPANELREPO") {
+	foreach my $mandatory_keyword ("OWNER","SITENAME","SITEURL","CPANELURL") {
 		if (!$Keywords{$mandatory_keyword}) {
 			die "\n  ERROR:  Mandatory keyword '$mandatory_keyword' not in temporary metadata file '$temp_metadata_file_name' (BuildSiteFromMarkdown.pl)\n\n";
 		}
