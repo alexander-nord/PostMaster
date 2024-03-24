@@ -61,22 +61,17 @@ sub GetCpanelUsername
 	open(my $MetadataFile,'<',$metadata_file_name)
 		|| die "\n  ERROR:  Failed to open metadata file '$metadata_file_name' (PushSite.pl)\n\n";
 
-	my $cpanel_url = '';
+	my $cpanel_username;
 	while (my $line <$MetadataFile>) {
-		next if (!$line !~ /^\s*CPANELURL\s*:\s*(\S+)\s*$/);
-		$cpanel_url = $1;
+		next if (!$line !~ /^\s*CPANELUSER\s*:\s*(\S+)\s*$/);
+		$cpanel_username = $1;
 		last;
 	}
 	close($MetadataFile);
 
-	if (!$cpanel_url) {
+	if (!$cpanel_username) {
 		die "\n  ERROR:  Metadata file '$metadata_file_name' does not have required field 'CPANELURL' (PushSite.pl)\n\n";
 	}
-
-
-	$cpanel_url =~ /\/home\/([^\/]+)\//;
-	my $cpanel_username = $1;
-
 
 	return $cpanel_username;
 

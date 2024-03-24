@@ -364,11 +364,20 @@ sub GetKeywords
 
 	close($TempMetadata);
 
-	foreach my $mandatory_keyword ("OWNER","SITENAME","SITEURL","CPANELURL") {
+	foreach my $mandatory_keyword ("OWNER","SITENAME","CPANELURL") {
 		if (!$Keywords{$mandatory_keyword}) {
 			die "\n  ERROR:  Mandatory keyword '$mandatory_keyword' not in temporary metadata file '$temp_metadata_file_name' (BuildSiteFromMarkdown.pl)\n\n";
 		}
 	}
+
+
+	# We should be able to derive the CPanel username and the site url from CPANELURL
+	$Keywords{'CPANELURL'} =~ /\/\/([^@]+)@([^\/]+)\//;
+	my $cpanel_username = $1;
+	my $site_url = $2;
+
+	$Keywords{'CPANELUSER'} = $cpanel_username;
+	$Keywords{'SITEURL'}    = $site_url;
 
 
 	$Keywords{'SITEDESCRIPTION'} = GetSiteDescription($site_desc_file_name);
