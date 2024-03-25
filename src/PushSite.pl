@@ -34,7 +34,7 @@ if (!(-d $site_dir_name)) {
 $site_dir_name = $site_dir_name.'/' if ($site_dir_name !~ /\/$/);
 
 
-my ($cpanel_username,$cpanel_url) = GetCpanelData($site_dir_name.'metadata.txt');
+my ($cpanel_username,$cpanel_url) = GetCpanelData($site_dir_name.'.metadata');
 
 
 $cpanel_url =~ /^ssh:\/\/[^\/]+(\/.+)\/?$/;
@@ -111,14 +111,9 @@ sub GitAddAndBuildYML
 	my $cpanel_root    = shift;
 	my $commit_message = shift;
 
-
-	my %BlockedDirs;
-	$BlockedDirs{'.'}    = 1;
-	$BlockedDirs{'..'}   = 1;
-	$BlockedDirs{'.git'} = 1;
-
 	
 	chdir $site_dir_name;
+
 
 	my $yml_file_name = '.cpanel.yml';
 	open (my $YML,'>',$yml_file_name)
@@ -150,7 +145,7 @@ sub GitAddAndBuildYML
 		while (my $fname = readdir($Subdir)) {
 
 			$fname =~ s/\/$//;
-			next if ($BlockedDirs{$fname});
+			next if ($fname =~ /^\./);
 
 			if (-d "$subdir_name$fname") {
 				push(@SubdirList,$subdir_name.$fname.'/');
@@ -222,7 +217,7 @@ sub GenNavBarJS
 
 	# POSTS
 
-	my ($post_titles_ref,$post_data_ref) = RipListFile($site_dir_name.'post-list.txt');
+	my ($post_titles_ref,$post_data_ref) = RipListFile($site_dir_name.'.post-list');
 	my @PostTitles = @{$post_titles_ref};
 	my @PostData   = @{$post_data_ref};
 
@@ -233,7 +228,9 @@ sub GenNavBarJS
 		$post_titles_str = $post_titles_str."\"$PostTitles[$i]\",";
 
 		$PostData[$i] =~ /^\s*(\S+)/;
-		$post_urls_str = $post_urls_str."\"$1\",";
+		my $post_url = $1;
+		$post_url = 'http://'.$post_url if ($post_url !~ /^http/);
+		$post_urls_str = $post_urls_str."\"$post_url\",";
 
 		last if ($i+1 == $MAX_NAVBAR_POSTS);
 
@@ -248,7 +245,7 @@ sub GenNavBarJS
 
 	# GENRES
 
-	my ($genre_titles_ref,$genre_urls_ref) = RipListFile($site_dir_name.'genre-list.txt');
+	my ($genre_titles_ref,$genre_urls_ref) = RipListFile($site_dir_name.'.genre-list');
 	my @GenreTitles = @{$genre_titles_ref};
 	my @GenreURLs   = @{$genre_urls_ref};
 
@@ -256,7 +253,10 @@ sub GenNavBarJS
 	my $genre_urls_str = 'const GenreURLs = [';
 	for (my $i=0; $i<scalar(@GenreTitles); $i++) {
 		$genre_titles_str = $genre_titles_str."\"$GenreTitles[$i]\",";
-		$genre_urls_str = $genre_urls_str."\"$GenreURLs[$i]\",";
+		$GenreURLs[$i] =~ /^\s*(\S+)/;
+		my $genre_url = $1;
+		$genre_url = 'http://'.$genre_url if ($genre_url !~ /^http/);
+		$genre_urls_str = $genre_urls_str."\"$genre_url\",";
 	}
 	
 	$genre_titles_str =~ s/\,$//;
@@ -268,18 +268,19 @@ sub GenNavBarJS
 
 	# STATICS
 
-	my ($static_titles_ref,$static_data_ref) = RipListFile($site_dir_name.'static-list.txt');
+	my ($static_titles_ref,$static_data_ref) = RipListFile($site_dir_name.'.static-list');
 	my @StaticTitles = @{$static_titles_ref};
 	my @StaticData   = @{$static_data_ref};
 
 	my $static_titles_str = 'const StaticTitles = [';
 	my $static_urls_str = 'const StaticURLs = [';
 	for (my $i=0; $i<scalar(@StaticTitles); $i++) {
-		$StaticData[$i] =~ /^\s*(\S+)\s*(\d)\s*$/;
+		$StaticData[$i] =~ /^\s*(\S+)\s+(\d)/;
 		my $static_url = $1;
 		my $post_to_navbar = $2;
 		if ($post_to_navbar == 1) {
 			$static_titles_str = $static_titles_str."\"$StaticTitles[$i]\",";
+			$static_url = 'http://'.$static_url if ($static_url !~ /^http/);
 			$static_urls_str = $static_urls_str."\"$static_url\",";
 		}
 	}
@@ -336,7 +337,7 @@ sub GenPostListJS
 	my $template_file_name = shift;
 
 
-	my ($titles_ref,$post_data_ref) = RipListFile($site_dir_name.'post-list.txt');
+	my ($titles_ref,$post_data_ref) = RipListFile($site_dir_name.'.post-list');
 
 	my @Titles   = @{$titles_ref};
 	my @PostData = @{$post_data_ref};
@@ -359,7 +360,9 @@ sub GenPostListJS
 		my $url = $1;
 		my $date = $2;
 
+		$url = 'http://'.$url if ($url !~ /^http/);
 		$urls_str = $urls_str."\"$url\",";
+
 		$dates_str = $dates_str."\"$date\",";
 		
 		$url =~ /\/([^\/]+)\/[^\/]+\/[^\/]+$/;

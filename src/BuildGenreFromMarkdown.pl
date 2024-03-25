@@ -237,7 +237,7 @@ sub SetupGenreDir
 	}
 
 
-	open(my $MetadataFile,'>',$genre_dir_name.'metadata.txt')
+	open(my $MetadataFile,'>',$genre_dir_name.'.metadata')
 		|| GenreDirSetupFail("Failed to create metadata file",$genre_dir_name);
 	print $MetadataFile "GENRE: $genre_name_html\n";
 	print $MetadataFile "GENREDESCRIPTION: $genre_desc_html\n";
@@ -247,8 +247,8 @@ sub SetupGenreDir
 	ComposeGenreHTML($genre_dir_name);
 
 
-	open(my $SiteMetadata,'<',$site_dir_name.'metadata.txt')
-		|| die "\n  ERROR:  Failed to open metadata file '$site_dir_namemetadata.txt'\n\n";
+	open(my $SiteMetadata,'<',$site_dir_name.'.metadata')
+		|| die "\n  ERROR:  Failed to open metadata file '$site_dir_name.metadata'\n\n";
 	my $site_url;
 	while (my $line = <$SiteMetadata>) {
 		if ($line =~ /^\s*SITEURL\s*:\s*(\S+)/) {
@@ -259,8 +259,8 @@ sub SetupGenreDir
 	}
 	close($SiteMetadata);
 		
-	open(my $GenreListFile,'>>',$site_dir_name.'genre-list.txt')
-		|| die "\n  ERROR:  Failed to open genre list file '".$site_dir_name."genre-list.txt'\n\n";
+	open(my $GenreListFile,'>>',$site_dir_name.'.genre-list')
+		|| die "\n  ERROR:  Failed to open genre list file '$site_dir_name.genre-list'\n\n";
 	print $GenreListFile "\"$genre_name_html\" $site_url/$genre_name_text\n";
 	close($GenreListFile);
 

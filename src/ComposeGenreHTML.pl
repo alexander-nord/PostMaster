@@ -85,8 +85,8 @@ sub GatherKeywords
 	$site_dir_name =~ s/\/[^\/]+\/$/\//;
 
 	my @MetadataFileNames;
-	push(@MetadataFileNames,$genre_dir_name.'metadata.txt');
-	push(@MetadataFileNames, $site_dir_name.'metadata.txt');
+	push(@MetadataFileNames,$genre_dir_name.'.metadata');
+	push(@MetadataFileNames, $site_dir_name.'.metadata');
 
 
 	my %Keywords;

@@ -197,9 +197,9 @@ sub ComposeLandingPage
 
 
 	# We'll just make some empty files, for fun and profit
-	open(my $PL,'>',$site_dir_name.'post-list.txt');   close($PL);
-	open(my $GL,'>',$site_dir_name.'genre-list.txt');  close($GL);
-	open(my $SL,'>',$site_dir_name.'static-list.txt'); close($SL);
+	open(my $PL,'>',$site_dir_name.'.post-list');   close($PL);
+	open(my $GL,'>',$site_dir_name.'.genre-list');  close($GL);
+	open(my $SL,'>',$site_dir_name.'.static-list'); close($SL);
 
 }
 
@@ -240,7 +240,7 @@ sub SetupBaseFiles
 	}
 
 
-	my $out_metadata_file_name = $site_dir_name.'metadata.txt';
+	my $out_metadata_file_name = $site_dir_name.'.metadata';
 	open(my $OutMetadataFile,'>',$out_metadata_file_name)
 		|| SetupFail("Failed to create metadata file '$out_metadata_file_name'",$site_dir_name);
 	foreach my $keyword (sort keys %Keywords) {

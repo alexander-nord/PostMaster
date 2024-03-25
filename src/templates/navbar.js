@@ -7,7 +7,12 @@
 //
 
 
-const site_url = window.location.href.match(/^([^\/]+\/+[^\/]+)/)[1];
+var site_url;
+var HTTPMatcher = window.location.href.match(/^(https?:\/+[^\/]+)/);
+if (HTTPMatcher)
+	site_url = HTTPMatcher[1];
+else
+	site_url = "http://" + window.location.href.match(/^([^\/]+)/)[1];
 
 
 

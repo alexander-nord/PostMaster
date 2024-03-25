@@ -241,8 +241,8 @@ sub RecordPageCreation
 	my $genre_dir_base_name = $2;
 
 
-	open(my $SiteMetadata,'<',$site_dir_name.'metadata.txt')
-		|| die "\n  ERROR:  Failed to open metadata file '$site_dir_namemetadata.txt'\n\n";
+	open(my $SiteMetadata,'<',$site_dir_name.'.metadata')
+		|| die "\n  ERROR:  Failed to open metadata file '$site_dir_name.metadata'\n\n";
 	my $site_url;
 	while (my $line = <$SiteMetadata>) {
 		if ($line =~ /^\s*SITEURL\s*:\s*(\S+)/) {
@@ -271,7 +271,7 @@ sub RecordPageCreation
 	}
 	close($Page);
 
-	AddToPostList($page_title,$page_url,$publish_date,$site_dir_name.'post-list.txt');
+	AddToPostList($page_title,$page_url,$publish_date,$site_dir_name.'.post-list');
 
 }
 
@@ -292,6 +292,9 @@ sub AddToPostList
 	my $new_page_pub_date   = shift;
 	my $post_list_file_name = shift;
 
+	if ($new_page_url !~ /^http/) {
+		$new_page_url = 'http://'.$new_page_url;
+	}
 
 	my @OldPostList;
 
@@ -325,7 +328,7 @@ sub AddToPostList
 		my $old_title = $1;
 		my $old_url   = $2;
 		my $old_date  = $3;
-		
+
 		if ($old_url ne $new_page_url) {
 			print $PostFile "\"$old_title\" $old_url \"$old_date\"\n";
 		}
