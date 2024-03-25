@@ -34,7 +34,7 @@ if (!(-d $site_dir_name)) {
 $site_dir_name = $site_dir_name.'/' if ($site_dir_name !~ /\/$/);
 
 
-my ($cpanel_username,$cpanel_url) = GetCpanelData($site_dir_name.'.metadata');
+my ($cpanel_username,$cpanel_url) = GetCpanelData($site_dir_name.'metadata.txt');
 
 
 $cpanel_url =~ /^ssh:\/\/[^\/]+(\/.+)\/?$/;
@@ -46,7 +46,7 @@ if (scalar(@ARGV) == 2) { $commit_message = $ARGV[1];           }
 else                    { $commit_message = GenCommitMessage(); }
 
 GenJavaScriptFiles($site_dir_name);
-#GitAddAndBuildYML($site_dir_name,$cpanel_root,$commit_message);
+GitAddAndBuildYML($site_dir_name,$cpanel_root,$commit_message);
 
 
 1;

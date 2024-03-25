@@ -241,8 +241,8 @@ sub RecordPageCreation
 	my $genre_dir_base_name = $2;
 
 
-	open(my $SiteMetadata,'<',$site_dir_name.'.metadata')
-		|| die "\n  ERROR:  Failed to open metadata file '$site_dir_name.metadata'\n\n";
+	open(my $SiteMetadata,'<',$site_dir_name.'metadata.txt')
+		|| die "\n  ERROR:  Failed to open metadata file '$site_dir_namemetadata.txt'\n\n";
 	my $site_url;
 	while (my $line = <$SiteMetadata>) {
 		if ($line =~ /^\s*SITEURL\s*:\s*(\S+)/) {

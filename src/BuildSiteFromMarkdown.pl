@@ -240,7 +240,7 @@ sub SetupBaseFiles
 	}
 
 
-	my $out_metadata_file_name = $site_dir_name.'.metadata';
+	my $out_metadata_file_name = $site_dir_name.'metadata.txt';
 	open(my $OutMetadataFile,'>',$out_metadata_file_name)
 		|| SetupFail("Failed to create metadata file '$out_metadata_file_name'",$site_dir_name);
 	foreach my $keyword (sort keys %Keywords) {
