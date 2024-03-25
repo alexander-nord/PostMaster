@@ -246,10 +246,22 @@ sub SetupGenreDir
 
 	ComposeGenreHTML($genre_dir_name);
 
-	
+
+	open(my $SiteMetadata,'<',$site_dir_name.'.metadata')
+		|| die "\n  ERROR:  Failed to open metadata file '$site_dir_name.metadata'\n\n";
+	my $site_url;
+	while (my $line = <$SiteMetadata>) {
+		if ($line =~ /^\s*SITEURL\s*:\s*(\S+)/) {
+			$site_url = $1;
+			$site_url =~ s/\/$//;
+			last;
+		}
+	}
+	close($SiteMetadata);
+		
 	open(my $GenreListFile,'>>',$site_dir_name.'.genre-list')
 		|| die "\n  ERROR:  Failed to open genre list file '$site_dir_name.genre-list'\n\n";
-	print $GenreListFile "\"$genre_name_html\" $genre_name_text\n";
+	print $GenreListFile "\"$genre_name_html\" $site_url/$genre_name_text\n";
 	close($GenreListFile);
 
 

@@ -268,9 +268,7 @@ sub RecordPageCreation
 	}
 	close($Page);
 
-
-	AddToPostList($page_title,$page_url,$site_dir_name.'.full-post-list');
-	AddToPostList($page_title,$page_url,$genre_dir_name.'.genre-post-list');
+	AddToPostList($page_title,$page_url,$site_dir_name.'.post-list');
 
 }
 

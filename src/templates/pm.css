@@ -151,7 +151,7 @@ li a:hover {
     position: fixed;
     overflow: auto;
     top: 0;
-    margin: 20px 33vw 0 125px;
+    margin: 20px 33vw 0 150px;
     width: 100vw;
     z-index: 2;
 }
@@ -174,7 +174,7 @@ li a:hover {
 
 .genreEntry {
     margin: 20px 0 0 3vw;
-    height: 160px;
+    height: 80px;
 }
 .genreEntry a {
     text-decoration: none;

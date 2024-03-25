@@ -195,6 +195,12 @@ sub ComposeLandingPage
 	close($TemplateFile);
 	close($IndexFile);
 
+
+	# We'll just make some empty files, for fun and profit
+	open(my $PL,'>',$site_dir_name.'.post-list');   close($PL);
+	open(my $GL,'>',$site_dir_name.'.genre-list');  close($GL);
+	open(my $SL,'>',$site_dir_name.'.static-list'); close($SL);
+
 }
 
 
