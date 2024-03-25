@@ -259,16 +259,19 @@ sub RecordPageCreation
 
 	open(my $Page,'<',$page_file_name)
 		|| die "\n  ERROR:  Failed to open page file '$page_file_name'\n\n";
+
 	my $page_title;
+	my $publish_date;
 	while (my $line = <$Page>) {
-		if ($line =~ /^<h2>\s*(.+)\s*<\/h2>/) {
+		if (!$page_title && $line =~ /^<h2>\s*(.+)\s*<\/h2>/) {
 			$page_title = $1;
-			last;
+		} elsif (!$publish_date && $line =~ /<p class="blogDate">\s*(.+)\s*<\/p>/) {
+			$publish_date = $1;
 		}
 	}
 	close($Page);
 
-	AddToPostList($page_title,$page_url,$site_dir_name.'.post-list');
+	AddToPostList($page_title,$page_url,$publish_date,$site_dir_name.'.post-list');
 
 }
 
@@ -286,7 +289,9 @@ sub AddToPostList
 
 	my $new_page_title      = shift;
 	my $new_page_url        = shift;
+	my $new_page_pub_date   = shift;
 	my $post_list_file_name = shift;
+
 
 	my @OldPostList;
 
@@ -312,16 +317,17 @@ sub AddToPostList
 	open(my $PostFile,'>',$post_list_file_name)
 		|| die "\n  ERROR:  Failed to open '$post_list_file_name' (writing)\n\n";
 	
-	print $PostFile "\"$new_page_title\" $new_page_url\n";
+	print $PostFile "\"$new_page_title\" $new_page_url \"$new_page_pub_date\"\n";
 	
 	foreach my $old_post_line (@OldPostList) {
 		
-		$old_post_line =~ /^\s*\"(.+)\"\s+(\S+)\s*$/;
+		$old_post_line =~ /^\s*\"([^\"]+)\"\s+(\S+)\s+\"([^\"]+)\"\s*$/;
 		my $old_title = $1;
 		my $old_url   = $2;
+		my $old_date  = $3;
 		
 		if ($old_url ne $new_page_url) {
-			print $PostFile "\"$old_title\" $old_url\n";
+			print $PostFile "\"$old_title\" $old_url \"$old_date\"\n";
 		}
 
 	}

@@ -224,16 +224,21 @@ sub GenNavBarJS
 
 	# POSTS
 
-	my ($post_titles_ref,$post_urls_ref) = RipListFile($site_dir_name.'.post-list');
+	my ($post_titles_ref,$post_data_ref) = RipListFile($site_dir_name.'.post-list');
 	my @PostTitles = @{$post_titles_ref};
-	my @PostURLs   = @{$post_urls_ref};
+	my @PostData   = @{$post_data_ref};
 
 	my $post_titles_str = 'const PostTitles = [';
-	my $post_urls_str = 'const PostURLs = [';
+	my $post_urls_str   = 'const PostURLs = [';
 	for (my $i=0; $i<scalar(@PostTitles); $i++) {
+
 		$post_titles_str = $post_titles_str."\"$PostTitles[$i]\",";
-		$post_urls_str = $post_urls_str."\"$PostURLs[$i]\",";
+
+		$PostData[$i] =~ /^\s*(\S+)/;
+		$post_urls_str = $post_urls_str."\"$1\",";
+
 		last if ($i+1 == $MAX_NAVBAR_POSTS);
+
 	}
 	
 	$post_titles_str =~ s/\,$//;
@@ -333,10 +338,10 @@ sub GenPostListJS
 	my $template_file_name = shift;
 
 
-	my ($titles_ref,$urls_ref) = RipListFile($site_dir_name.'.post-list');
+	my ($titles_ref,$post_data_ref) = RipListFile($site_dir_name.'.post-list');
 
-	my @Titles = @{$titles_ref};
-	my @URLs   = @{$urls_ref};
+	my @Titles   = @{$titles_ref};
+	my @PostData = @{$post_data_ref};
 
 
 	my $titles_str = 'const PostTitles = [';
@@ -348,10 +353,16 @@ sub GenPostListJS
 
 
 	my $urls_str = 'const PostURLs = [';
+	my $dates_str = 'const PostDates = [';
 	my $genres_str = 'const PostGenres = [';
-	foreach my $url (@URLs) {
+	foreach my $datum (@PostData) {
 		
+		$datum =~ /^\s*(\S+)\s+\"([^\"]+)\"/;
+		my $url = $1;
+		my $date = $2;
+
 		$urls_str = $urls_str."\"$url\",";
+		$dates_str = $dates_str."\"$date\",";
 		
 		$url =~ /\/([^\/]+)\/[^\/]+\/[^\/]+$/;
 		$genres_str = $genres_str."\"$1\",";
@@ -360,6 +371,9 @@ sub GenPostListJS
 
 	$urls_str =~ s/\,$//;
 	$urls_str = $urls_str.'];';
+
+	$dates_str =~ s/\,$//;
+	$dates_str = $dates_str.'];';
 
 	$genres_str =~ s/\,$//;
 	$genres_str = $genres_str.'];';
@@ -371,6 +385,7 @@ sub GenPostListJS
 	print $PLJS "function GenPostList () {\n\n";
 	print $PLJS "\t$titles_str\n";
 	print $PLJS "\t$urls_str\n";
+	print $PLJS "\t$dates_str\n";
 	print $PLJS "\t$genres_str\n";
 	print $PLJS "\n\n";
 

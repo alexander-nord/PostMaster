@@ -3,6 +3,7 @@
 //
 //  + PostTitles - An array of post titles, HTML-formatted
 //  + PostURLs   - An array of post URLs
+//  + PostDates  - An array of publication dates for posts, HTML-formatted
 //  + PostGenres - An array of genre names for each post, as they appear in the url path
 //
 
@@ -23,7 +24,7 @@ if (GenreMatcher)
 	genre = GenreMatcher[1];
 
 var pagenum = 1
-const PageNumMatcher = window.location.href.match(/\&pagenum=(\d+)/);
+const PageNumMatcher = window.location.href.match(/\?pagenum=(\d+)/);
 if (PageNumMatcher)
 	pagenum = PageNumMatcher[1];
 
@@ -52,6 +53,7 @@ while (post_index < PostTitles.length && page_genre_count < posts_per_page) {
 		PostListHTML += "<div class=\"genreEntry\">\n";
 		PostListHTML += "<div class=\"genreEntryTitle\"><a href=\"";
 		PostListHTML += PostURLs[post_index]+"\">"+PostTitles[post_index]+"</a></div>\n";
+		PostListHTML += "<div class=\"genreEntryDate\">"+PostDates[post_index]+"</div>\n";
 		PostListHTML += "</div>\n";
 		page_genre_count++;
 		total_genre_count++;
@@ -65,7 +67,7 @@ while (post_index < PostTitles.length) {
 	post_index++;
 }
 
-const last_page_num = 1 + ((total_genre_count-1) / posts_per_page);
+const last_page_num = Math.max(1+Math.floor((total_genre_count-1) / posts_per_page),1);
 
 
 
@@ -74,46 +76,24 @@ const last_page_num = 1 + ((total_genre_count-1) / posts_per_page);
 // Part 3: Add simple navigators
 //
 
-var first_page_url = "";
-var prev_page_url  = "";
-if (pagenum > 1) {
-	first_page_url = site_url;
-	prev_page_url  = site_url + "&pagenum=" + (pagenum - 1);
-}
+var first_page_url = site_url + "/" + genre;
+var prev_page_url  = first_page_url;
+if (pagenum > 1)
+	prev_page_url  = site_url + "/" + genre + "?pagenum=" + (pagenum - 1);
 
-var next_page_url = "";
-var last_page_url = "";
-if (pagenum < last_page_num) {
-	next_page_url = site_url + "&pagenum=" + (pagenum + 1);
-	last_page_url = site_url + "&pagenum=" + last_page_num;
-}
+
+var last_page_url  = site_url + "/" + genre + "?pagenum=" + last_page_num;
+var next_page_url  = last_page_url;
+if (pagenum < last_page_num)
+	next_page_url  = site_url + "/" + genre + "?pagenum=" + (pagenum + 1);
 
 
 var PostNavHTML = "<div class=\"genrePageNav\">\n<p>\n";
-
-
-if (first_page_url) PostNavHTML += "<a href=\"" + first_page_url +"\">";
-else                PostNavHTML += "<a href=\"" + site_url +"\">";
-PostNavHTML += "&ll;</a>";
-	
-
-if (prev_page_url) PostNavHTML += "<a href=\"" + prev_url +"\">";
-else               PostNavHTML += "<a href=\"" + site_url +"\">";
-PostNavHTML += "&lt;</a>";
-
-
-if (next_page_url) PostNavHTML += "<a href=\"" + next_page_url +"\">";
-else               PostNavHTML += "<a href=\"" + site_url +"\">";
-PostNavHTML += "&gt;</a>";
-
-
-if (last_page_url) PostNavHTML += "<a href=\"" + last_page_url +"\">";
-else               PostNavHTML += "<a href=\"" + site_url +"\">";
-PostNavHTML += "&gg;</a>\n";
-
-	
-PostNavHTML += "</p>\n";
-PostNavHTML += "</div>\n";
+PostNavHTML    += "<a href=\"" + first_page_url +"\">&ll;</a>\n";
+PostNavHTML    += "<a href=\"" +  prev_page_url +"\">&lt;</a>\n";
+PostNavHTML    += "<a href=\"" +  next_page_url +"\">&gt;</a>\n";
+PostNavHTML    += "<a href=\"" +  last_page_url +"\">&gg;</a>\n";
+PostNavHTML    += "</p>\n</div>\n";
 
 
 
