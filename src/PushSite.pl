@@ -15,7 +15,7 @@ my $MAX_NAVBAR_POSTS = 3;
 
 
 
-sub GetCpanelUsername;
+sub GetCpanelData;
 sub GitAddAndBuildYML;
 sub GenJavaScriptFiles;
 sub GenCommitMessage;
@@ -34,11 +34,11 @@ if (!(-d $site_dir_name)) {
 $site_dir_name = $site_dir_name.'/' if ($site_dir_name !~ /\/$/);
 
 
-my $cpanel_username = GetCpanelUsername($site_dir_name.'.metadata');
+my ($cpanel_username,$cpanel_url) = GetCpanelData($site_dir_name.'.metadata');
 
 
-my $cpanel_root = '/home/'.$cpanel_username;
-$cpanel_root =~ s/\/$//;
+$cpanel_url =~ /^ssh:\/\/[^\/]+(\/.+)\/?$/;
+my $cpanel_root = $1;
 
 
 my $commit_message;
@@ -59,9 +59,9 @@ GitAddAndBuildYML($site_dir_name,$cpanel_root,$commit_message);
 
 ###################################################################
 #
-#  Function:  GetCpanelUsername
+#  Function:  GetCpanelData
 #
-sub GetCpanelUsername
+sub GetCpanelData
 {
 
 	my $metadata_file_name = shift;
@@ -73,18 +73,24 @@ sub GetCpanelUsername
 		|| die "\n  ERROR:  Failed to open metadata file '$metadata_file_name' (PushSite.pl)\n\n";
 
 	my $cpanel_username;
+	my $cpanel_url;
 	while (my $line = <$MetadataFile>) {
-		next if ($line !~ /^\s*CPANELUSER\s*:\s*(\S+)\s*$/);
-		$cpanel_username = $1;
-		last;
+		if ($line =~ /^\s*CPANELUSER\s*:\s*(\S+)\s*$/) {
+			$cpanel_username = $1;
+		} elsif ($line =~ /^\s*CPANELURL\s*:\s*(\S+)\s*$/) {
+			$cpanel_url = $1;
+		}
 	}
 	close($MetadataFile);
 
 	if (!$cpanel_username) {
 		die "\n  ERROR:  Metadata file '$metadata_file_name' does not have required field 'CPANELUSER' (PushSite.pl)\n\n";
 	}
+	if (!$cpanel_url) {
+		die "\n  ERROR:  Metadata file '$metadata_file_name' does not have required field 'CPANELURL' (PushSite.pl)\n\n";
+	}
 
-	return $cpanel_username;
+	return ($cpanel_username,$cpanel_url);
 
 }
 
@@ -111,34 +117,28 @@ sub GitAddAndBuildYML
 	$BlockedDirs{'..'}   = 1;
 	$BlockedDirs{'.git'} = 1;
 
-	my %DoNotPublish;
-	$DoNotPublish{'.cpanel.yml'}  = 1;
-	$DoNotPublish{'.blog.md'}     = 1;
-	$DoNotPublish{'.blog.html'}   = 1;
-	$DoNotPublish{'.metadata'}    = 1;
-	$DoNotPublish{'.post-list'}   = 1;
-	$DoNotPublish{'.genre-list'}  = 1;
-	$DoNotPublish{'.static-list'} = 1;
-
 	
 	chdir $site_dir_name;
-	my $local_site_name = getcwd();
-	$local_site_name =~ s/^.+\/([^\/]+)\/?$/$1/;
-	$local_site_name = $local_site_name.'/';
-
 
 	my $yml_file_name = '.cpanel.yml';
 	open (my $YML,'>',$yml_file_name)
 		|| die "\n  ERROR:  Failed to open YAML file '$yml_file_name' (PushSite.pl)\n\n";
 
 
+	my $cpanel_html_dir_name = $cpanel_root;
+	$cpanel_html_dir_name =~ s/\/[^\/]+$/\/public_html/;
+
+	my $cpanel_www_dir_name = $cpanel_root;
+	$cpanel_www_dir_name =~ s/\/[^\/]+$/\/www/;
+
+
 	print $YML "---\n";
 	print $YML "deployment:\n";
 	print $YML "  tasks:\n";
-	print $YML "    - /bin/rm -rf $cpanel_root/public_html/\n";
-	print $YML "    - /bin/rm -rf $cpanel_root/www/\n";
-	print $YML "    - /bin/mkdir  $cpanel_root/public_html/\n";
-	print $YML "    - /bin/mkdir  $cpanel_root/www/\n";
+	print $YML "    - /bin/rm -rf $cpanel_html_dir_name/\n";
+	print $YML "    - /bin/rm -rf $cpanel_www_dir_name/\n";
+	print $YML "    - /bin/mkdir  $cpanel_html_dir_name/\n";
+	print $YML "    - /bin/mkdir  $cpanel_www_dir_name/\n";
 
 
 	my @SubdirList = ('');
@@ -154,16 +154,14 @@ sub GitAddAndBuildYML
 
 			if (-d "$subdir_name$fname") {
 				push(@SubdirList,$subdir_name.$fname.'/');
-				print $YML "    - /bin/mkdir $cpanel_root/public_html/$subdir_name$fname\n";
-				print $YML "    - /bin/mkdir $cpanel_root/www/$subdir_name$fname\n";
+				print $YML "    - /bin/mkdir $cpanel_html_dir_name/$subdir_name$fname\n";
+				print $YML "    - /bin/mkdir $cpanel_www_dir_name/$subdir_name$fname\n";
 			} else {
 				if (system("git add $subdir_name$fname")) {
 					die "\n  ERROR:  Failed to git add file '$subdir_name$fname' (PushSite.pl)\n\n";
 				}
-				if (!$DoNotPublish{$fname}) {
-					print $YML "    - /bin/cp $cpanel_root/$local_site_name$subdir_name$fname $cpanel_root/public_html/$subdir_name\n";
-					print $YML "    - /bin/cp $cpanel_root/$local_site_name$subdir_name$fname $cpanel_root/www/$subdir_name\n";
-				}
+				print $YML "    - /bin/cp $cpanel_root/$subdir_name$fname $cpanel_html_dir_name/$subdir_name\n";
+				print $YML "    - /bin/cp $cpanel_root/$subdir_name$fname $cpanel_www_dir_name/$subdir_name\n";
 			}
 
 		}
@@ -224,7 +222,7 @@ sub GenNavBarJS
 
 	# POSTS
 
-	my ($post_titles_ref,$post_data_ref) = RipListFile($site_dir_name.'.post-list');
+	my ($post_titles_ref,$post_data_ref) = RipListFile($site_dir_name.'post-list.txt');
 	my @PostTitles = @{$post_titles_ref};
 	my @PostData   = @{$post_data_ref};
 
@@ -250,7 +248,7 @@ sub GenNavBarJS
 
 	# GENRES
 
-	my ($genre_titles_ref,$genre_urls_ref) = RipListFile($site_dir_name.'.genre-list');
+	my ($genre_titles_ref,$genre_urls_ref) = RipListFile($site_dir_name.'genre-list.txt');
 	my @GenreTitles = @{$genre_titles_ref};
 	my @GenreURLs   = @{$genre_urls_ref};
 
@@ -270,7 +268,7 @@ sub GenNavBarJS
 
 	# STATICS
 
-	my ($static_titles_ref,$static_data_ref) = RipListFile($site_dir_name.'.static-list');
+	my ($static_titles_ref,$static_data_ref) = RipListFile($site_dir_name.'static-list.txt');
 	my @StaticTitles = @{$static_titles_ref};
 	my @StaticData   = @{$static_data_ref};
 
@@ -338,7 +336,7 @@ sub GenPostListJS
 	my $template_file_name = shift;
 
 
-	my ($titles_ref,$post_data_ref) = RipListFile($site_dir_name.'.post-list');
+	my ($titles_ref,$post_data_ref) = RipListFile($site_dir_name.'post-list.txt');
 
 	my @Titles   = @{$titles_ref};
 	my @PostData = @{$post_data_ref};

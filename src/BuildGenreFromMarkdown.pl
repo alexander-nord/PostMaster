@@ -259,8 +259,8 @@ sub SetupGenreDir
 	}
 	close($SiteMetadata);
 		
-	open(my $GenreListFile,'>>',$site_dir_name.'.genre-list')
-		|| die "\n  ERROR:  Failed to open genre list file '$site_dir_name.genre-list'\n\n";
+	open(my $GenreListFile,'>>',$site_dir_name.'genre-list.txt')
+		|| die "\n  ERROR:  Failed to open genre list file '".$site_dir_name."genre-list.txt'\n\n";
 	print $GenreListFile "\"$genre_name_html\" $site_url/$genre_name_text\n";
 	close($GenreListFile);
 

@@ -271,7 +271,7 @@ sub RecordPageCreation
 	}
 	close($Page);
 
-	AddToPostList($page_title,$page_url,$publish_date,$site_dir_name.'.post-list');
+	AddToPostList($page_title,$page_url,$publish_date,$site_dir_name.'post-list.txt');
 
 }
 
