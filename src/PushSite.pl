@@ -46,7 +46,7 @@ if (scalar(@ARGV) == 2) { $commit_message = $ARGV[1];           }
 else                    { $commit_message = GenCommitMessage(); }
 
 GenJavaScriptFiles($site_dir_name);
-# GitAddAndBuildYML($site_dir_name,$cpanel_root,$commit_message);
+GitAddAndBuildYML($site_dir_name,$cpanel_root,$commit_message);
 
 
 1;
