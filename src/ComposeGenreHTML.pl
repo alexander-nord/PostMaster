@@ -162,8 +162,8 @@ sub ComposeGenre
 				
 				$replacement_text = RipTextFromFile($Keywords{$keyword});
 
-				# If this is the blog text, we've already found and printed the title				
-				if ($keyword eq 'BLOGTEXT') {
+				# If this is the post text, we've already found and printed the title				
+				if ($keyword eq 'POSTTEXT') {
 					$replacement_text =~ s/<h1>.*<\/h1>//;
 				}
 
@@ -174,7 +174,7 @@ sub ComposeGenre
 			}
 
 			if (!$replacement_text) {
-				die "\n  ERROR:  Unable to find a replacement for '$text_to_replace' in blog template (ComposeBlogHTML.pl)\n\n";
+				die "\n  ERROR:  Unable to find a replacement for '$text_to_replace' in template (ComposeGenreHTML.pl)\n\n";
 			}
 
 			$line =~ s/$text_to_replace/$replacement_text/;

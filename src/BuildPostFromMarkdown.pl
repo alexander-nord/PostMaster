@@ -14,7 +14,7 @@ use lib GetScriptDir();
 use __FixLinks;
 
 
-sub PageDirBuildFail;
+sub PostDirBuildFail;
 sub CopyFilesToPageDir;
 sub CreatePageDir;
 sub ComposePageHTML;
@@ -22,7 +22,7 @@ sub ComposePageHTML;
 
 
 if (@ARGV != 2) {
-	die "\n  USAGE:  ./BuildPageFromMarkdown.pl [path/to/intended/page/dir] [file.md]\n\n";
+	die "\n  USAGE:  ./BuildPostFromMarkdown.pl [path/to/intended/post/dir] [file.md]\n\n";
 }
 
 
@@ -103,7 +103,7 @@ sub CopyFilesToPageDir
 	open(my $HTMLScanner,$md_to_html_cmd) 
 		|| PageDirBuildFail("Failed to run markdown parsing command '$md_to_html_cmd'");
 
-	my $out_html_file_name = $out_dir_name.'.blog.html';
+	my $out_html_file_name = $out_dir_name.'.post.html';
 	open(my $OutHTML,'>',$out_html_file_name)
 		|| PageDirBuildFail("Failed to open output html file '$out_html_file_name'");
 
@@ -121,7 +121,7 @@ sub CopyFilesToPageDir
 	close($HTMLScanner);
 
 
-	my $out_md_file_name = $out_dir_name.'.blog.md';
+	my $out_md_file_name = $out_dir_name.'.post.md';
 	my $md_copy_cmd = "cp \"$md_file_name\" \"$out_md_file_name\"";
 	if (system($md_copy_cmd)) {
 		PageDirBuildFail("Failed to copy markdown file to output directory (command:'$md_copy_cmd')");
@@ -187,12 +187,12 @@ sub CreatePageDir
 sub RecordPageCreation
 {
 
-	my $page_file_name = shift;
+	my $post_file_name = shift;
 
 	
-	$page_file_name =~ /^(.+\/)([^\/]+\/[^\/]+)$/;
+	$post_file_name =~ /^(.+\/)([^\/]+\/[^\/]+)$/;
 	my $genre_dir_name = $1;
-	my $page_dir_file_names = $2;
+	my $post_dir_file_names = $2;
 
 
 	$genre_dir_name =~ /^(.+\/)([^\/]+)\/$/;
@@ -213,24 +213,24 @@ sub RecordPageCreation
 	close($SiteMetadata);
 	
 
-	my $page_url = $site_url.'/'.$genre_dir_base_name.'/'.$page_dir_file_names;
+	my $post_url = $site_url.'/'.$genre_dir_base_name.'/'.$post_dir_file_names;
 
 
-	open(my $Page,'<',$page_file_name)
-		|| die "\n  ERROR:  Failed to open page file '$page_file_name'\n\n";
+	open(my $Post,'<',$post_file_name)
+		|| die "\n  ERROR:  Failed to open post file '$post_file_name'\n\n";
 
-	my $page_title;
+	my $post_title;
 	my $publish_date;
-	while (my $line = <$Page>) {
-		if (!$page_title && $line =~ /^<h2>\s*(.+)\s*<\/h2>/) {
-			$page_title = $1;
+	while (my $line = <$Post>) {
+		if (!$post_title && $line =~ /^<h2>\s*(.+)\s*<\/h2>/) {
+			$post_title = $1;
 		} elsif (!$publish_date && $line =~ /<p class="blogDate">\s*(.+)\s*<\/p>/) {
 			$publish_date = $1;
 		}
 	}
-	close($Page);
+	close($Post);
 
-	AddToPostList($page_title,$page_url,$publish_date,$site_dir_name.'.post-list');
+	AddToPostList($post_title,$post_url,$publish_date,$site_dir_name.'.post-list');
 
 }
 
@@ -246,23 +246,23 @@ sub RecordPageCreation
 sub AddToPostList
 {
 
-	my $new_page_title      = shift;
-	my $new_page_url        = shift;
-	my $new_page_pub_date   = shift;
+	my $new_post_title      = shift;
+	my $new_post_url        = shift;
+	my $new_post_pub_date   = shift;
 	my $post_list_file_name = shift;
 
-	if ($new_page_url !~ /^http/) {
-		$new_page_url = 'http://'.$new_page_url;
+	if ($new_post_url !~ /^http/) {
+		$new_post_url = 'http://'.$new_post_url;
 	}
 
 	my @OldPostList;
 
 	if (-e $post_list_file_name) {
 	
-		open(my $PostFile,'<',$post_list_file_name)
+		open(my $PostListFile,'<',$post_list_file_name)
 			|| die "\n  ERROR:  Failed to open '$post_list_file_name' (reading)\n\n";
 	
-		while (my $line = <$PostFile>) {
+		while (my $line = <$PostListFile>) {
 
 			$line =~ s/\n|\r//g;
 			next if (!$line);
@@ -271,15 +271,15 @@ sub AddToPostList
 	
 		}
 	
-		close($PostFile);
+		close($PostListFile);
 	
 	}
 
 	
-	open(my $PostFile,'>',$post_list_file_name)
+	open(my $PostListFile,'>',$post_list_file_name)
 		|| die "\n  ERROR:  Failed to open '$post_list_file_name' (writing)\n\n";
 	
-	print $PostFile "\"$new_page_title\" $new_page_url \"$new_page_pub_date\"\n";
+	print $PostListFile "\"$new_post_title\" $new_post_url \"$new_post_pub_date\"\n";
 	
 	foreach my $old_post_line (@OldPostList) {
 		
@@ -288,13 +288,13 @@ sub AddToPostList
 		my $old_url   = $2;
 		my $old_date  = $3;
 
-		if ($old_url ne $new_page_url) {
-			print $PostFile "\"$old_title\" $old_url \"$old_date\"\n";
+		if ($old_url ne $new_post_url) {
+			print $PostListFile "\"$old_title\" $old_url \"$old_date\"\n";
 		}
 
 	}
 
-	close($PostFile);
+	close($PostListFile);
 
 
 }
@@ -320,15 +320,15 @@ sub ComposePageHTML
 
 	open(my $PageTitleReader,$compose_cmd)
 		|| PageDirBuildFail("Page composition command '$compose_cmd' failed");
-	my $page_fname_line = <$PageTitleReader>;
+	my $post_fname_line = <$PageTitleReader>;
 	close($PageTitleReader);
 
 
-	if ($page_fname_line =~ /PAGE:\s*(\S+)/) {
-		my $page_file_name = $1;
-		RecordPageCreation($page_file_name);
+	if ($post_fname_line =~ /POST:\s*(\S+)/) {
+		my $post_file_name = $1;
+		RecordPageCreation($post_file_name);
 	} else {
-		PageDirBuildFail("Failed to determine new page filename");
+		PageDirBuildFail("Failed to determine new post filename");
 	}
 
 

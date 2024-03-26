@@ -15,7 +15,7 @@ $SCRIPT_DIR = $SCRIPT_DIR.'/';
 
 
 sub RipTextFromFile;
-sub ComposeBlog;
+sub ComposePost;
 sub GatherKeywords;
 sub GrabTitleFromHTML;
 sub TitleToHTMLFilename;
@@ -24,21 +24,21 @@ sub GetFormattedDate;
 
 
 if (@ARGV != 1) {
-	die "\n  USAGE:  ./ComposeBlogHTML.pl [path/to/blog/dir]\n\n";
+	die "\n  USAGE:  ./ComposePostHTML.pl [path/to/post/dir]\n\n";
 }
 
 
-my $blog_dir_name = $ARGV[0];
-$blog_dir_name = $blog_dir_name.'/' if ($blog_dir_name !~ /\//);
-if (!(-d $blog_dir_name)) {
-	die "\n  ERROR:  Failed to locate blog directory '$ARGV[0]' (ComposeBlogHTML.pl)\n\n";
+my $post_dir_name = $ARGV[0];
+$post_dir_name = $post_dir_name.'/' if ($post_dir_name !~ /\//);
+if (!(-d $post_dir_name)) {
+	die "\n  ERROR:  Failed to locate post directory '$ARGV[0]' (ComposePostHTML.pl)\n\n";
 }
 
 
-my $blog_file_name = ComposeBlog($blog_dir_name);
+my $post_file_name = ComposePost($post_dir_name);
 
 
-print "PAGE: $blog_file_name\n";
+print "POST: $post_file_name\n";
 
 
 1;
@@ -59,10 +59,10 @@ sub RipTextFromFile
 	my $filename = shift;
 
 	if (!(-e $filename)) {
-		die "\n  ERROR:  Failed to locate file '$filename' (ComposeBlogHTML.pl)\n\n";
+		die "\n  ERROR:  Failed to locate file '$filename' (ComposePostHTML.pl)\n\n";
 	}
 	open(my $File,'<',$filename)
-		|| die "\n  ERROR:  Failed to open file '$filename' (ComposeBlogHTML.pl)\n\n";
+		|| die "\n  ERROR:  Failed to open file '$filename' (ComposePostHTML.pl)\n\n";
 
 	my $text = '';
 	while (my $line = <$File>) {
@@ -85,25 +85,25 @@ sub RipTextFromFile
 sub ComposeBlog
 {
 	
-	my $blog_dir_name = shift;
+	my $post_dir_name = shift;
 
-	my $keywords_ref  = GatherKeywords($blog_dir_name);
+	my $keywords_ref  = GatherKeywords($post_dir_name);
 	my %Keywords = %{$keywords_ref};
 
-	my $blog_template_file_name = $SCRIPT_DIR.'templates/blog.html';
+	my $post_template_file_name = $SCRIPT_DIR.'templates/post.html';
 
-	my $blog_html_file_name = TitleToHTMLFilename($Keywords{'TITLE'});
-	if ($blog_html_file_name eq '.html') {
-		die "\n  ERROR:  Failed to put convert blog title '$Keywords{'TITLE'}' to an html title (ComposeBlogHTML.pl)\n\n";
+	my $post_html_file_name = TitleToHTMLFilename($Keywords{'TITLE'});
+	if ($post_html_file_name eq '.html') {
+		die "\n  ERROR:  Failed to put convert post title '$Keywords{'TITLE'}' to an html title (ComposePostHTML.pl)\n\n";
 	}
-	$blog_html_file_name = $blog_dir_name.$blog_html_file_name;
+	$post_html_file_name = $post_dir_name.$post_html_file_name;
 
 
-	open(my $HTMLFile,'>',$blog_html_file_name)
-		|| die "\n  ERROR:  Failed to open output HTML file '$blog_html_file_name' (ComposeBlogHTML.pl)\n\n";
+	open(my $HTMLFile,'>',$post_html_file_name)
+		|| die "\n  ERROR:  Failed to open output HTML file '$post_html_file_name' (ComposePostHTML.pl)\n\n";
 
-	open(my $TemplateFile,'<',$blog_template_file_name)
-		|| die "\n  ERROR:  Failed to open template blog HTML file '$blog_template_file_name' (ComposeBlogHTML.pl)\n\n";
+	open(my $TemplateFile,'<',$post_template_file_name)
+		|| die "\n  ERROR:  Failed to open template post HTML file '$post_template_file_name' (ComposePostHTML.pl)\n\n";
 
 
 	while (my $line = <$TemplateFile>) {
@@ -116,12 +116,12 @@ sub ComposeBlog
 			my $text_to_replace = "__PM_$keyword";
 
 			my $replacement_text;
-			if ($keyword eq 'BLOGTEXT' || $keyword eq 'NAVBARJS' || $keyword eq 'FONTS') {
+			if ($keyword eq 'POSTTEXT' || $keyword eq 'NAVBARJS' || $keyword eq 'FONTS') {
 				
 				$replacement_text = RipTextFromFile($Keywords{$keyword});
 
-				# If this is the blog text, we've already found and printed the title				
-				if ($keyword eq 'BLOGTEXT') {
+				# If this is the post text, we've already found and printed the title				
+				if ($keyword eq 'POSTTEXT') {
 					$replacement_text =~ s/<h1>.*<\/h1>//;
 				}
 
@@ -132,7 +132,7 @@ sub ComposeBlog
 			}
 
 			if (!$replacement_text) {
-				die "\n  ERROR:  Unable to find a replacement for '$text_to_replace' in blog template (ComposeBlogHTML.pl)\n\n";
+				die "\n  ERROR:  Unable to find a replacement for '$text_to_replace' in post template (ComposePostHTML.pl)\n\n";
 			}
 
 			$line =~ s/$text_to_replace/$replacement_text/;
@@ -147,7 +147,7 @@ sub ComposeBlog
 	close($HTMLFile);
 
 
-	return $blog_html_file_name;
+	return $post_html_file_name;
 
 }
 
@@ -163,10 +163,10 @@ sub ComposeBlog
 sub GatherKeywords
 {
 
-	my $blog_dir_name = shift;
+	my $post_dir_name = shift;
 
 
-	my $genre_dir_name = $blog_dir_name;
+	my $genre_dir_name = $post_dir_name;
 	$genre_dir_name =~ s/\/[^\/]+\/$/\//;
 
 	my $site_dir_name = $genre_dir_name;
@@ -181,11 +181,11 @@ sub GatherKeywords
 	foreach my $metadata_file_name (@MetadataFileNames) {
 
 		if (!(-e $metadata_file_name)) {
-			die "\n  ERROR:  Failed to locate metadata file '$metadata_file_name' (ComposeBlogHTML.pl)\n\n";
+			die "\n  ERROR:  Failed to locate metadata file '$metadata_file_name' (ComposePostHTML.pl)\n\n";
 		}
 
 		open(my $MetadataFile,'<',$metadata_file_name)
-			|| die "\n  ERROR:  Failed to open metadata file '$metadata_file_name' (ComposeBlogHTML.pl)\n\n";
+			|| die "\n  ERROR:  Failed to open metadata file '$metadata_file_name' (ComposePostHTML.pl)\n\n";
 		while (my $line = <$MetadataFile>) {
 			if ($line =~ /^\s*(\S+)\s*\:\s*(.+)\s*$/) {
 				$Keywords{$1} = $2;
@@ -195,13 +195,13 @@ sub GatherKeywords
 
 	}
 
-	# What's the actual blog content (hmtl)?!
-	$Keywords{'BLOGTEXT'} = $blog_dir_name.'.blog.html';
+	# What's the actual post content (hmtl)?!
+	$Keywords{'POSTTEXT'} = $post_dir_name.'.post.html';
 
 	# Grab the title from the html, all clever-like
-	$Keywords{'TITLE'} = GrabTitleFromHTML($Keywords{'BLOGTEXT'});
+	$Keywords{'TITLE'} = GrabTitleFromHTML($Keywords{'POSTTEXT'});
 
-	# The blog is considered 'published' when this script is run
+	# The post is considered 'published' when this script is run
 	$Keywords{'PUBLISHDATE'} = GetFormattedDate();
 
 	# The font and navbar files are likely relative to the site 
@@ -227,10 +227,10 @@ sub GrabTitleFromHTML
 	my $filename = shift;
 
 	if (!(-e $filename)) {
-		die "\n  ERROR:  Failed to locate blog HTML file '$filename' (ComposeBlogHTML.pl)\n\n";
+		die "\n  ERROR:  Failed to locate post HTML file '$filename' (ComposePostHTML.pl)\n\n";
 	}
 	open(my $File,'<',$filename)
-		|| die "\n  ERROR:  Failed to open blog HTML file '$filename' (ComposeBlogHTML.pl)\n\n";
+		|| die "\n  ERROR:  Failed to open post HTML file '$filename' (ComposePostHTML.pl)\n\n";
 
 
 	my $title;
@@ -244,7 +244,7 @@ sub GrabTitleFromHTML
 
 
 	if (!$title) {
-		die "\n  ERROR:  Failed to read blog title (level-1 header) from blog HTML file '$filename' (ComposeBlogHTML.pl)\n\n";
+		die "\n  ERROR:  Failed to read post title (level-1 header) from post HTML file '$filename' (ComposePostHTML.pl)\n\n";
 	}
 
 
