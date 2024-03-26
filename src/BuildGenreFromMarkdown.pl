@@ -7,10 +7,10 @@ use POSIX;
 my $WORKING_DIR = getcwd();
 $WORKING_DIR = $WORKING_DIR.'/' if ($WORKING_DIR !~ /\/$/);
 
-my $SCRIPT_DIR = $0;
-$SCRIPT_DIR =~ s/\/?[^\/]+$//;
-$SCRIPT_DIR = '.' if (!$SCRIPT_DIR);
-$SCRIPT_DIR = $SCRIPT_DIR.'/';
+sub GetScriptDir { my $sd = $0; $sd =~ s/\/?[^\/]+$//; $sd = '.' if (!$sd); return $sd.'/'; }
+my $SCRIPT_DIR = GetScriptDir();
+use lib GetScriptDir();
+use __FixLinks;
 
 
 sub GenreMarkdownToHTML;
@@ -284,11 +284,48 @@ sub ComposeGenreHTML
 {
 	
 	my $genre_dir_name = shift;
-
+	
 	my $compose_genre_script = $SCRIPT_DIR.'ComposeGenreHTML.pl';
 	my $compose_genre_cmd = "perl $compose_genre_script $genre_dir_name";
 	if (system($compose_genre_cmd)) {
 		GenreDirSetupFail("Failed to compose genre index HTML (command:'$compose_genre_cmd')",$genre_dir_name);
+	}
+
+	my $link_fixed_html = $genre_dir_name.'.fixed.html';
+	open(my $FixedHTML,'>',$link_fixed_html)
+		|| GenreDirSetupFail("Failed to open temporary html file '$link_fixed_html'",$genre_dir_name);
+
+	open(my $IndexHTML,'<',$genre_dir_name.'index.html')
+		|| GenreDirSetupFail("Failed to open (uncorrected) index.html file in '$genre_dir_name'",$genre_dir_name);
+
+
+	while (my $line = <$IndexHTML>) {
+		print $FixedHTML "$line";
+		last if ($line =~ /class="genreDesc"/);
+	}
+
+	while (my $line = <$IndexHTML>) {
+		$line =~ s/\n|\r//g;
+		if ($line =~ /\S/) {
+			$line = FixLinks($line,$genre_dir_name,$genre_dir_name);
+			GenreDirSetupFail("Failed while attempting to manage links",$genre_dir_name) if (!$line);
+		}
+		print $FixedHTML "$line\n";
+		last if ($line =~ /<script/);
+	}
+
+	while (my $line = <$IndexHTML>) {
+		print $FixedHTML "$line";
+	}
+
+
+	close($FixedHTML);
+	close($IndexHTML);
+
+
+	my $cp_cmd = "cp $link_fixed_html $genre_dir_name".'index.html';
+	if (system($cp_cmd)) {
+		GenreDirSetupFail("Failed to copy $link_fixed_html to index.html in $genre_dir_name",$genre_dir_name);
 	}
 
 }

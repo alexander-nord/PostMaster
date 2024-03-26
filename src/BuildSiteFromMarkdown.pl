@@ -8,10 +8,10 @@ use Cwd;
 my $WORKING_DIR = getcwd();
 $WORKING_DIR = $WORKING_DIR.'/' if ($WORKING_DIR !~ /\/$/);
 
-my $SCRIPT_DIR = $0;
-$SCRIPT_DIR =~ s/\/?[^\/]+$//;
-$SCRIPT_DIR = '.' if (!$SCRIPT_DIR);
-$SCRIPT_DIR = $SCRIPT_DIR.'/';
+sub GetScriptDir { my $sd = $0; $sd =~ s/\/?[^\/]+$//; $sd = '.' if (!$sd); return $sd.'/'; }
+my $SCRIPT_DIR = GetScriptDir();
+use lib GetScriptDir();
+use __FixLinks;
 
 
 sub InitCPanelRepo;
@@ -37,7 +37,7 @@ if (!(-d $all_sites_dir_name)) {
 }
 
 
-my $keywords_ref = GetKeywords($ARGV[0],$ARGV[1]);
+my $keywords_ref = GetKeywords($ARGV[0]);
 my %Keywords = %{$keywords_ref};
 
 
@@ -55,10 +55,10 @@ if (-d $site_dir_name) {
 }
 
 
-InitCPanelRepo($site_dir_name,$Keywords{'CPANELURL'});
+$Keywords{'SITEDESCRIPTION'} = GetSiteDescription($ARGV[1],$site_dir_name);
 
-$keywords_ref = SetupBaseFiles($site_dir_name,$ARGV[1],\%Keywords);
-%Keywords = %{$keywords_ref};
+
+InitCPanelRepo($site_dir_name,$Keywords{'CPANELURL'});
 
 ComposeLandingPage($site_dir_name,SetupBaseFiles($site_dir_name,$ARGV[1],\%Keywords));
 
@@ -148,7 +148,7 @@ sub ComposeLandingPage
 	my $site_dir_name = shift;
 	my $keywords_ref  = shift;
 
-	my %Keywords = %Keywords;
+	my %Keywords = %{$keywords_ref};
 
 	my $template_file_name = $SCRIPT_DIR.'templates/landing.html';
 	open(my $TemplateFile,'<',$template_file_name)
@@ -249,10 +249,10 @@ sub SetupBaseFiles
 	close($OutMetadataFile);
 
 
-	if (system("cp $site_desc_file_name $site_dir_name")) {
+	if (system("cp \"$site_desc_file_name\" \"$site_dir_name\"")) {
 		SetupFail("Failed to copy site description file '$site_desc_file_name' to '$site_dir_name'",$site_dir_name);
 	}
-
+	
 
 	return \%Keywords;
 
@@ -289,10 +289,14 @@ sub GetSiteDescription
 {
 
 	my $site_desc_file_name = shift;
+	my $out_dir_name = shift;
 
 	if (!(-e $site_desc_file_name)) {
 		die "\n  ERROR:  Failed to locate site description file '$site_desc_file_name' (BuildSiteFromMarkdown.pl)\n\n";
 	}
+
+	my $site_desc_dir_name = $site_desc_file_name;
+	$site_desc_dir_name =~ s/[^\/]+$//;
 
 	my $conversion_cmd = $SCRIPT_DIR.'MarkdownToHTML.pl '.$site_desc_file_name.' |';
 	open(my $SiteDescFile,$conversion_cmd)
@@ -300,7 +304,11 @@ sub GetSiteDescription
 	my $site_desc_html = '';
 	while (my $line = <$SiteDescFile>) {
 		$line =~ s/\n|\r//g;
-		$site_desc_html = $site_desc_html.' '.$line if ($line =~ /\S/);
+		if ($line =~ /\S/) {
+			$line = FixLinks($line,$site_desc_dir_name,$out_dir_name);
+			die "\n  ERROR:  Failed while performing link management\n\n" if (!$line);
+			$site_desc_html = $site_desc_html.' '.$line;
+		}
 	}
 	close($SiteDescFile);
 
@@ -349,7 +357,6 @@ sub GetKeywords
 {
 
 	my $temp_metadata_file_name = shift;
-	my $site_desc_file_name     = shift;
 
 
 	if (!(-e $temp_metadata_file_name)) {
@@ -384,9 +391,6 @@ sub GetKeywords
 
 	$Keywords{'CPANELUSER'} = $cpanel_username;
 	$Keywords{'SITEURL'}    = $site_url;
-
-
-	$Keywords{'SITEDESCRIPTION'} = GetSiteDescription($site_desc_file_name);
 
 
 	return \%Keywords;

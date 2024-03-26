@@ -9,11 +9,20 @@ sub BlockQuoteCatch;
 sub OrderedListCatch;
 sub UnorderedListCatch;
 sub LinkCatch;
-sub ImageCatch;
 sub PerformQuickConversions;
 sub TagScan;
 sub TranslateStringToHTML;
 sub ConvertFileToHTML;
+
+
+my %IMG_EXTS;
+$IMG_EXTS{'gif'}  = 1;
+$IMG_EXTS{'jpg'}  = 1;
+$IMG_EXTS{'jpeg'} = 1;
+$IMG_EXTS{'png'}  = 1;
+$IMG_EXTS{'img'}  = 1;
+$IMG_EXTS{'svg'}  = 1;
+$IMG_EXTS{'webp'} = 1;
 
 
 
@@ -153,25 +162,25 @@ sub UnorderedListCatch
 sub LinkCatch
 {
 	my $str = shift;
-	$str =~ s/\[([^\]]+)\]\(([^\)]+)\)/<a href="$2">$1<\/a>/g;
+	
+	while ($str =~ /\[([^\]]+)\]\(([^\)]+)\)/) {
+
+		my $text = $1;
+		my $link = $2;
+
+		$link =~ /\.([^\.]+)$/;
+		my $ext = lc($1);
+
+		if ($IMG_EXTS{$ext}) {
+			$str =~ s/\[[^\]]+\]\([^\)]+\)/<img src="$link" alt="$text">/;
+		} else {
+			$str =~ s/\[[^\]]+\]\([^\)]+\)/<a href="$link">$text<\/a>/;
+		}
+
+	}
+
 	return $str;
-}
 
-
-
-
-
-
-
-############################################################
-#
-#  Function:  ImageCatch
-#
-sub ImageCatch
-{
-	my $str = shift;
-	$str =~ s/\!\[([^\]]+)\]\(([^\)]+)\)/<img src="$2" alt="$1">/g;
-	return $str;
 }
 
 
@@ -208,8 +217,7 @@ sub PerformQuickConversions
 	$str =~ s/ < / &lt; /g;
 	$str =~ s/ > / &gt; /g;
 
-	$str = ImageCatch($str); # This should be first  -- looking for ![text](img)
-	$str = LinkCatch($str);  # This should be second -- looking for  [text](url)
+	$str = LinkCatch($str);
 
 	return $str;
 
@@ -343,7 +351,6 @@ sub ConvertFileToHTML
 {
 
 	my $in_file_name = shift;
-
 
 	open(my $InFile,'<',$in_file_name) 
 		|| die "\n  ERROR:  Failed to open markdown file '$in_file_name' (MarkdownToHTML.pl)\n\n";

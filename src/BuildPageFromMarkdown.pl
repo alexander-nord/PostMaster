@@ -8,14 +8,13 @@ use Cwd;
 my $WORKING_DIR = getcwd();
 $WORKING_DIR = $WORKING_DIR.'/' if ($WORKING_DIR !~ /\/$/);
 
-my $SCRIPT_DIR = $0;
-$SCRIPT_DIR =~ s/\/?[^\/]+$//;
-$SCRIPT_DIR = '.' if (!$SCRIPT_DIR);
-$SCRIPT_DIR = $SCRIPT_DIR.'/';
+sub GetScriptDir { my $sd = $0; $sd =~ s/\/?[^\/]+$//; $sd = '.' if (!$sd); return $sd.'/'; }
+my $SCRIPT_DIR = GetScriptDir();
+use lib GetScriptDir();
+use __FixLinks;
 
 
 sub PageDirBuildFail;
-sub FixImageLinks;
 sub CopyFilesToPageDir;
 sub CreatePageDir;
 sub ComposePageHTML;
@@ -78,50 +77,6 @@ sub PageDirBuildFail
 
 
 
-###################################################################
-#
-#  Function:  FixImageLinks
-#
-sub FixImageLinks
-{
-	my $html_str     = shift;
-	my $md_dir_name  = shift;
-	my $out_dir_name = shift;
-
-	my @Images;
-	while ($html_str =~ /<img src="(\S+)"/) {
-		push(@Images,$1);
-		$html_str =~ s/<img src="\S+"/<img src="" class="blogPic"/;
-	}
-
-
-	foreach my $img (@Images) {
-
-		$img =~ /\/?([^\/]+)$/;
-		my $img_id = $1;
-
-		my $src_img = $md_dir_name.$img;
-		if (!(-e $src_img)) {
-			PageDirBuildFail("Failed to locate image file '$src_img'");
-		}
-
-		my $out_img = $dir_name.$img_id;
-		my $img_copy_cmd = "cp \"$src_img\" \"$out_img\"";
-		if (system($img_copy_cmd)) {
-			PageDirBuildFail("Failed to copy image file (command:'$img_copy_cmd')");
-		}
-
-		$html_str =~ s/<img src=""/<img src="$img_id"/;
-
-	}
-
-	return $html_str;
-
-}
-
-
-
-
 
 ###################################################################
 #
@@ -152,12 +107,16 @@ sub CopyFilesToPageDir
 	open(my $OutHTML,'>',$out_html_file_name)
 		|| PageDirBuildFail("Failed to open output html file '$out_html_file_name'");
 
+
 	while (my $line = <$HTMLScanner>) {
-
-		$line = FixImageLinks($line,$md_dir_name,$out_dir_name);
-
+	
+		if ($line =~ /\S/) {
+			$line = FixLinks($line,$md_dir_name,$out_dir_name);
+			PageDirBuildFail("Failed while attempting to manage links") if (!$line);
+		}
+		
 		print $OutHTML "$line";
-
+	
 	}
 	close($HTMLScanner);
 
