@@ -314,7 +314,7 @@ sub ComposePageHTML
 	my $dir_name = shift;
 
 
-	my $compose_script = $SCRIPT_DIR.'ComposeBlogHTML.pl';
+	my $compose_script = $SCRIPT_DIR.'ComposePostHTML.pl';
 	my $compose_cmd = "perl $compose_script $dir_name |";
 
 

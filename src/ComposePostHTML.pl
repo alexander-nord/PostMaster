@@ -80,9 +80,9 @@ sub RipTextFromFile
 
 ###################################################################
 #
-#  Function:  ComposeBlog
+#  Function:  ComposePost
 #
-sub ComposeBlog
+sub ComposePost
 {
 	
 	my $post_dir_name = shift;
