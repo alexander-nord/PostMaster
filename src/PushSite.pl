@@ -149,7 +149,7 @@ sub GitAddAndBuildYML
 				next;
 			}
 
-			if (-d "$subdir_name$fname") {
+			if (-d "$subdir_name$fname" && $fname ne '.git') {
 				push(@SubdirList,$subdir_name.$fname.'/');
 				print $YML "    - /bin/mkdir $cpanel_html_dir_name/$subdir_name$fname\n";
 				print $YML "    - /bin/mkdir $cpanel_www_dir_name/$subdir_name$fname\n";
@@ -225,26 +225,22 @@ sub GenNavBarJS
 	my @PostTitles = @{$post_titles_ref};
 	my @PostData   = @{$post_data_ref};
 
-	my $post_titles_str = 'const PostTitles = [';
-	my $post_urls_str   = 'const PostURLs = [';
+	my $post_titles_str = "\tvar PostTitles = new Array();\n";
+	my $post_urls_str   = "\tvar PostURLs = new Array();\n";
 	for (my $i=0; $i<scalar(@PostTitles); $i++) {
-
-		$post_titles_str = $post_titles_str."\"$PostTitles[$i]\",";
 
 		$PostData[$i] =~ /^\s*(\S+)/;
 		my $post_url = $1;
+
 		$post_url = 'http://'.$post_url if ($post_url !~ /^http/);
-		$post_urls_str = $post_urls_str."\"$post_url\",";
+		
+		$post_titles_str = $post_titles_str."\tPostTitles.push(\"$PostTitles[$i]\");\n";
+		$post_urls_str = $post_urls_str."\tPostURLs.push(\"$post_url\");\n";
 
 		last if ($i+1 == $MAX_NAVBAR_POSTS);
 
 	}
 	
-	$post_titles_str =~ s/\,$//;
-	$post_titles_str = $post_titles_str.'];';
-	
-	$post_urls_str =~ s/\,$//;
-	$post_urls_str = $post_urls_str.'];';	
 
 
 	# GENRES
@@ -253,21 +249,20 @@ sub GenNavBarJS
 	my @GenreTitles = @{$genre_titles_ref};
 	my @GenreURLs   = @{$genre_urls_ref};
 
-	my $genre_titles_str = 'const GenreTitles = [';
-	my $genre_urls_str = 'const GenreURLs = [';
+	my $genre_titles_str = "\tvar GenreTitles = new Array();\n";
+	my $genre_urls_str   = "\tvar GenreURLs = new Array();\n";
 	for (my $i=0; $i<scalar(@GenreTitles); $i++) {
-		$genre_titles_str = $genre_titles_str."\"$GenreTitles[$i]\",";
+
 		$GenreURLs[$i] =~ /^\s*(\S+)/;
 		my $genre_url = $1;
+		
 		$genre_url = 'http://'.$genre_url if ($genre_url !~ /^http/);
-		$genre_urls_str = $genre_urls_str."\"$genre_url\",";
+
+		$genre_titles_str = $genre_titles_str."\tGenreTitles.push(\"$GenreTitles[$i]\");\n";
+		$genre_urls_str = $genre_urls_str."\tGenreURLs.push(\"$genre_url\");\n";
+	
 	}
 	
-	$genre_titles_str =~ s/\,$//;
-	$genre_titles_str = $genre_titles_str.'];';
-	
-	$genre_urls_str =~ s/\,$//;
-	$genre_urls_str = $genre_urls_str.'];';	
 
 
 	# STATICS
@@ -276,47 +271,49 @@ sub GenNavBarJS
 	my @StaticTitles = @{$static_titles_ref};
 	my @StaticData   = @{$static_data_ref};
 
-	my $static_titles_str = 'const StaticTitles = [';
-	my $static_urls_str = 'const StaticURLs = [';
+	my $static_titles_str = "\tvar StaticTitles = new Array();\n";
+	my $static_urls_str = "\tvar StaticURLs = new Array();\n";
 	for (my $i=0; $i<scalar(@StaticTitles); $i++) {
+
 		$StaticData[$i] =~ /^\s*(\S+)\s+(\d)/;
 		my $static_url = $1;
 		my $post_to_navbar = $2;
+		
 		if ($post_to_navbar == 1) {
-			$static_titles_str = $static_titles_str."\"$StaticTitles[$i]\",";
+		
 			$static_url = 'http://'.$static_url if ($static_url !~ /^http/);
-			$static_urls_str = $static_urls_str."\"$static_url\",";
+
+			$static_titles_str = $static_titles_str."\tStaticTitles.push(\"$StaticTitles[$i]\");\n";
+			$static_urls_str = $static_urls_str."\tStaticURLs.push(\"$static_url\");\n";
+		
 		}
+
 	}
 	
-	$static_titles_str =~ s/\,$//;
-	$static_titles_str = $static_titles_str.'];';
-	
-	$static_urls_str =~ s/\,$//;
-	$static_urls_str = $static_urls_str.'];';	
-
 
 
 	open(my $NBJS,'>',$site_dir_name.'navbar.js')
 		|| die "\n  ERROR:  Failed to open output 'navbar.js' file\n\n";
 
 	print $NBJS "function GenNavBar () {\n\n";
-	print $NBJS "\t$post_titles_str\n";
-	print $NBJS "\t$post_urls_str\n";
-	print $NBJS "\t$genre_titles_str\n";
-	print $NBJS "\t$genre_urls_str\n";
-	print $NBJS "\t$static_titles_str\n";
-	print $NBJS "\t$static_urls_str\n";
-	print $NBJS "\n\n";
+	print $NBJS "$post_titles_str\n";
+	print $NBJS "$post_urls_str\n";
+	print $NBJS "$genre_titles_str\n";
+	print $NBJS "$genre_urls_str\n";
+	print $NBJS "$static_titles_str\n";
+	print $NBJS "$static_urls_str\n";
+	print $NBJS "\n";
 
+	print $NBJS "\n";
 	open (my $Template,'<',$template_file_name)
 		|| die "\n  ERROR:  Failed to open input '$template_file_name'\n\n";
 	while (my $line = <$Template>) {
 		print $NBJS "\t$line";
 	}
 	close($Template);
+	print $NBJS "\n";
 
-	print $NBJS "\n\n}\n\n";
+	print $NBJS "}\n\n";
 	print $NBJS "GenNavBar();\n\n";
 
 	close($NBJS);
@@ -347,17 +344,15 @@ sub GenPostListJS
 	my @PostData = @{$post_data_ref};
 
 
-	my $titles_str = 'const PostTitles = [';
+	my $titles_str = "\tvar PostTitles = new Array();\n";
 	foreach my $title (@Titles) {
-		$titles_str = $titles_str."\"$title\",";
+		$titles_str = $titles_str."\tPostTitles.push(\"$title\");\n";
 	}
-	$titles_str =~ s/\,$//;
-	$titles_str = $titles_str.'];';
 
 
-	my $urls_str = 'const PostURLs = [';
-	my $dates_str = 'const PostDates = [';
-	my $genres_str = 'const PostGenres = [';
+	my $urls_str = "\tvar PostURLs = new Array();\n";
+	my $dates_str = "\tvar PostDates = new Array();\n";
+	my $genres_str = "\tvar PostGenres = new Array();\n";
 	foreach my $datum (@PostData) {
 		
 		$datum =~ /^\s*(\S+)\s+\"([^\"]+)\"/;
@@ -365,43 +360,37 @@ sub GenPostListJS
 		my $date = $2;
 
 		$url = 'http://'.$url if ($url !~ /^http/);
-		$urls_str = $urls_str."\"$url\",";
 
-		$dates_str = $dates_str."\"$date\",";
-		
 		$url =~ /\/([^\/]+)\/[^\/]+\/[^\/]+$/;
-		$genres_str = $genres_str."\"$1\",";
+		my $genre = $1;
+
+		$urls_str = $urls_str."\tPostURLs.push(\"$url\");\n";
+		$dates_str = $dates_str."\tPostDates.push(\"$date\");\n";
+		$genres_str = $genres_str."\tPostGenres.push(\"$genre\");\n";
 
 	}
-
-	$urls_str =~ s/\,$//;
-	$urls_str = $urls_str.'];';
-
-	$dates_str =~ s/\,$//;
-	$dates_str = $dates_str.'];';
-
-	$genres_str =~ s/\,$//;
-	$genres_str = $genres_str.'];';
 
 
 	open(my $PLJS,'>',$site_dir_name.'postlist.js')
 		|| die "\n  ERROR:  Failed to open output 'postlist.js' file\n\n";
 
 	print $PLJS "function GenPostList () {\n\n";
-	print $PLJS "\t$titles_str\n";
-	print $PLJS "\t$urls_str\n";
-	print $PLJS "\t$dates_str\n";
-	print $PLJS "\t$genres_str\n";
-	print $PLJS "\n\n";
+	print $PLJS "$titles_str\n";
+	print $PLJS "$urls_str\n";
+	print $PLJS "$dates_str\n";
+	print $PLJS "$genres_str\n";
+	print $PLJS "\n";
 
+	print $PLJS "\n";
 	open (my $Template,'<',$template_file_name)
 		|| die "\n  ERROR:  Failed to open input '$template_file_name'\n\n";
 	while (my $line = <$Template>) {
 		print $PLJS "\t$line";
 	}
 	close($Template);
+	print $PLJS "\n";
 
-	print $PLJS "\n\n}\n\n";
+	print $PLJS "}\n\n";
 	print $PLJS "GenPostList();\n\n";
 
 	close($PLJS);
