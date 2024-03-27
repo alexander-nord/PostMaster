@@ -47,7 +47,7 @@ sub FixLinks
 			} else {
 
 				# Either a webpage or an email address... BUT WHICH?!
-				if ($link !~ /\// && $link =~ /^[^\/]+@[^\.]+\.[^\.]+$/) {
+				if ($link !~ /\// && $link =~ /^[^\/]+@[^\/]+$/) {
 					$link = 'mailto:'.$link;
 				} else {
 					$link = 'http://'.$link if ($link !~ /^http/);
