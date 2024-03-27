@@ -249,7 +249,7 @@ sub SetupBaseFiles
 	close($OutMetadataFile);
 
 
-	if (system("cp \"$site_desc_file_name\" \"$site_dir_name\"")) {
+	if (system("cp \"$site_desc_file_name\" \"$site_dir_name".'.site-description.md'."\"")) {
 		SetupFail("Failed to copy site description file '$site_desc_file_name' to '$site_dir_name'",$site_dir_name);
 	}
 	
