@@ -145,7 +145,9 @@ sub GitAddAndBuildYML
 		while (my $fname = readdir($Subdir)) {
 
 			$fname =~ s/\/$//;
-			next if ($fname =~ /^\./);
+			if ($fname eq '.' || $fname eq '..') {
+				next;
+			}
 
 			if (-d "$subdir_name$fname") {
 				push(@SubdirList,$subdir_name.$fname.'/');
@@ -155,8 +157,10 @@ sub GitAddAndBuildYML
 				if (system("git add $subdir_name$fname")) {
 					die "\n  ERROR:  Failed to git add file '$subdir_name$fname' (PushSite.pl)\n\n";
 				}
-				print $YML "    - /bin/cp $cpanel_root/$subdir_name$fname $cpanel_html_dir_name/$subdir_name\n";
-				print $YML "    - /bin/cp $cpanel_root/$subdir_name$fname $cpanel_www_dir_name/$subdir_name\n";
+				if ($fname !~ /^\./) {
+					print $YML "    - /bin/cp $cpanel_root/$subdir_name$fname $cpanel_html_dir_name/$subdir_name\n";
+					print $YML "    - /bin/cp $cpanel_root/$subdir_name$fname $cpanel_www_dir_name/$subdir_name\n";
+				}
 			}
 
 		}
