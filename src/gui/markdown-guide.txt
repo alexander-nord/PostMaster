@@ -1,0 +1,50 @@
+
+
+                   A Quick Guide to Markdown Syntax!
+                   ---------------------------------
+          (psst: https://www.markdownguide.org/basic-syntax/)
+
+
+  [1] HEADERS / SECTION BREAKS
+
+      Header lines are indicated by having the first character of the
+      line be a '#' (pound symbol for us oldies, hashtag symbol for
+      you damn youngs!)
+
+      The strength of the header corresponds inversely to the number
+      of #s, as follows:
+
+           # This Is the Title of My Post
+
+           ## This is the first section
+
+           ### This is subsection 1.A
+
+           ### This is subsection 1.B
+
+           ## Section 2
+
+
+  [2] EMPHATIC TEXT
+
+      Emphasis is generally added with asterisks, where the number of
+      asterisks increases intensity.  For example:
+
+           *This text would be ITALICIZED*
+
+           **This text would be BOLD**
+
+           ***This text would be both BOLD AND ITALICIZED***
+
+
+  [3] EMBEDDED LINKS
+
+      To link to a web page or a local image or document, place the
+      text for the link (or, in the case of an image, the description)
+      between square brackets immediately next to parentheses
+      containing the desired link address.  For example:
+
+           [The mountains of Philipsburg](~/Photos/Home.png)
+
+           [postmaster](https://github.com/alexander-nord/postmaster)
+
