@@ -139,6 +139,14 @@ sub ComposePost
 
 		}
 
+		# As a special check, we'll want to clear out any html tags from
+		# the "title," since that doesn't get formatted (e.g., in the browser tab).
+		if ($line =~ /<title>(.*)<\/title>/) {
+			my $title_content = $1;
+			$title_content =~ s/<[^>]+>//g;
+			$line =~ s/<title>.*<\/title>/<title>$title_content<\/title>/g;
+		}
+
 		print $HTMLFile "$line\n";
 
 	}
